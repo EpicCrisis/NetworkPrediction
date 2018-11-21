@@ -55,6 +55,4 @@ private:
 	virtual void leaveLobbyReturn(void);
 
 	ExitGames::LoadBalancing::Client mLoadBalancingClient;
-
-
 };

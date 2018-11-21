@@ -7,11 +7,17 @@
 class Application
 {
 protected:
-	int m_method;
+	int playerNumber;
 
-	Sprite*		m_sprite01;
-	GameObject	m_object1;
-	GameObject	m_object2;
+	Sprite*		m_sprite_ship_red;
+	Sprite*		m_sprite_laser_red;
+	Sprite*		m_sprite_rocket_red;
+	Sprite*		m_sprite_ship_blue;
+	Sprite*		m_sprite_laser_blue;
+	Sprite*		m_sprite_rocket_blue;
+
+	GameObject	m_object_ship0;
+	GameObject	m_object_ship1;
 
 	Vector m_lastReceivedPos;
 	double m_prevReceivedTime;
@@ -32,6 +38,9 @@ public:
 		static Application app;
 		return app;
 	}
+
+	void SetPlayerNumber(int playerN);
+	void CheckPlayerShipColour();
 
 	void sendMyData(void);
 	void OnReceivedOpponentData(float* data);

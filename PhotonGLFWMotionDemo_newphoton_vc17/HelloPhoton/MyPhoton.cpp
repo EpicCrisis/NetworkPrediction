@@ -74,6 +74,8 @@ void MyPhoton::joinRoomEventAction(int playerNr, const ExitGames::Common::JVecto
 {
 	std::wcout << "joinRoomEventAction" << std::endl;
 
+	Application::getInstance().SetPlayerNumber(playerNr);
+
 	if (playernrs.getSize() >= 2)
 	{
 		Application::getInstance().sendMyData();
