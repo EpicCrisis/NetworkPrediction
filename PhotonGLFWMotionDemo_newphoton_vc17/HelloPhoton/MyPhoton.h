@@ -21,7 +21,6 @@ public:
 		return instance;
 	}
 
-
 	void sendMyData(float xpos, float ypos, float xvel, float yvel, float xaccel, float yaccel);
 
 private:
@@ -55,6 +54,4 @@ private:
 	virtual void leaveLobbyReturn(void);
 
 	ExitGames::LoadBalancing::Client mLoadBalancingClient;
-
-
 };

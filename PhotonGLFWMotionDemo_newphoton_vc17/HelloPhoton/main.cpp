@@ -33,13 +33,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	{
 		app.onKeyPressed(key);
 		gDownKeys.insert(key);
-
 	}
 	else if (action == GLFW_RELEASE)
 	{
 		app.onKeyReleased(key);
 		gDownKeys.erase(key);
-
 	}
 }
 
