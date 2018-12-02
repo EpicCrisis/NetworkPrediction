@@ -154,7 +154,6 @@ public:
 			mVal[2] *= invL;
 		}
 	}
-
 };
 
 #endif

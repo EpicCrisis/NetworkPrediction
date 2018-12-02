@@ -1,94 +1,205 @@
-#define _USE_MATH_DEFINES
+
 #include "Sprite.h"
-#include <cmath>
 
 Sprite::Sprite()
 {
-	m_width = 10;
-	m_height = 10;
-	m_textureID = 0;
+	m_width = 128;
+	m_height = 128;
 }
 
-Sprite::Sprite(const std::string& file)
+Matrix Sprite::SetTranslate(float x, float y)
 {
-	loadTexture(file);
+	return Matrix::makeTranslationMatrix(Vector(x, y, 0.0f));
+}
+
+Matrix Sprite::SetRotate(float rotation)
+{
+	return Matrix::makeRotateMatrix(rotation, Vector(0.0f, 0.0f, 1.0f));
+}
+
+Matrix Sprite::SetScale(float x, float y)
+{
+	return Matrix::makeScaleMatrix(Vector(x, y, 0.0f));
+}
+
+Sprite::Sprite(const std::string& path)
+{
+	SetFilePath(path);
 }
 
 Sprite::~Sprite()
 {
 }
 
-void Sprite::loadTexture(const std::string& file)
+void Sprite::LoadTexture(const char *path, GLuint textureID, unsigned int &width, unsigned int &height)
 {
-	glGenTextures(1, &m_textureID);
+	CBitmap bitmap(path);
 
-	CBitmap bitmap(file.c_str());
+	glBindTexture(GL_TEXTURE_2D, textureID);
 
-	glBindTexture(GL_TEXTURE_2D, m_textureID);
+	// Repeat texture in tiles.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // Horizontal texture.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Vertical texture.
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+																  // Bilinear filtering.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Near filter.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // Far filter.
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bitmap.GetWidth(), bitmap.GetHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, bitmap.GetBits());
-
-	m_width = bitmap.GetWidth();
-	m_height = bitmap.GetHeight();
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bitmap.GetWidth(), bitmap.GetHeight(),
+		0, GL_RGBA, GL_UNSIGNED_BYTE, bitmap.GetBits());
 }
 
+void Sprite::DrawSquare(GLuint textureID, int xPos, int yPos, int width, int height, GLubyte r, GLubyte g, GLubyte b)
 
-void Sprite::draw(Vector position, Color color, Vector scale, float radian, BlendMode blendMode)
 {
-	float halfW = m_width * 0.5f * scale.mVal[0];
-	float halfH = m_height * 0.5f * scale.mVal[1];
+	float halfW = (float)width * 0.5f;
+	float halfH = (float)height * 0.5f;
 
-	float displacementX = halfW * cos(radian) - halfH * sin(radian);
-	float displacementY = halfW * sin(radian) + halfH * cos(radian);
-
-	glColor4f(color.m_r, color.m_g, color.m_b, color.m_a);
-
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, m_textureID);
-
-	switch (blendMode)
+	GLfloat vertices[] =
 	{
+		xPos - halfW, yPos - halfH, 0.0f, // bottom left
+		xPos - halfW, yPos + halfH, 0.0f, // top left
+		xPos + halfW, yPos - halfH, 0.0f, // bottom right
 
-	case BlendMode::ADDITIVE:
+		xPos - halfW, yPos + halfH, 0.0f, // top left
+		xPos + halfW, yPos - halfH, 0.0f, // bottom right
+		xPos + halfW, yPos + halfH, 0.0f  // top right
+	};
 
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	GLfloat texCoords[] =
+	{
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+		1.0f, 0.0f,
 
-		break;
+		0.0f, 1.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f
+	};
 
-	case BlendMode::ALPHA:
+	GLubyte colors[] =
+	{
+		r, g, b,
+		r, g, b,
+		r, g, b,
 
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		r, g, b,
+		r, g, b,
+		r, g, b
+	};
 
-		break;
+	// Enable textures.
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, textureID);
 
-	case BlendMode::MULTIPLY:
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
 
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_DST_COLOR, GL_ZERO);
+	glVertexPointer(3, GL_FLOAT, 0, vertices);
+	glTexCoordPointer(2, GL_FLOAT, 0, texCoords);
+	glColorPointer(3, GL_UNSIGNED_BYTE, 0, colors);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		break;
-	}
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
+}
 
+void Sprite::SetFilePath(const std::string & path)
+{
+	glGenTextures(1, m_textureID);
+	LoadTexture(path.c_str(), m_textureID[0], m_width, m_height);
+}
+
+void Sprite::SetTextureID(GLuint textureID)
+{
+	m_textureID[0] = textureID;
+}
+
+void Sprite::SetColor(const Color& color)
+{
+	m_color = color;
+}
+
+void Sprite::SetBlendingMode(EnumBlend blend)
+{
+	m_blendMode = blend;
+}
+
+void Sprite::SetDimension(unsigned int width, unsigned int height)
+{
+	m_width = width;
+	m_height = height;
+}
+
+void Sprite::Draw()
+{
+	translateMatrix = SetTranslate(m_transform.position.x, m_transform.position.y);
+	rotateMatrix = SetRotate(m_transform.rotation);
+	scaleMatrix = SetScale(m_transform.scale.x, m_transform.scale.y);
+
+	Matrix viewMatrix = translateMatrix * rotateMatrix * scaleMatrix;
+
+	glLoadMatrixf((GLfloat*)viewMatrix.mVal);
+
+	// enable alpha functions
+	glEnable(GL_BLEND);
 	glEnable(GL_ALPHA_TEST);
 
-	// Please note that GL_QUADS is not supported in OpenGL ES, switch it to GL_TRIANGLES for better compability
-	glBegin(GL_QUADS);
-	glTexCoord2d(0.0, 1.0);	glVertex3f(position.mVal[0] - displacementX, position.mVal[1] - displacementY, 0);
-	glTexCoord2d(1.0, 1.0);	glVertex3f(position.mVal[0] + displacementY, position.mVal[1] - displacementX, 0);
-	glTexCoord2d(1.0, 0.0);	glVertex3f(position.mVal[0] + displacementX, position.mVal[1] + displacementY, 0);
-	glTexCoord2d(0.0, 0.0);	glVertex3f(position.mVal[0] - displacementY, position.mVal[1] + displacementX, 0);
-	glEnd();
+	glDepthMask(true);
 
-	glDisable(GL_TEXTURE_2D);
+	if (m_blendMode == BLEND_ADDITIVE)
+	{
+		//glBlendFunc(GL_ONE, GL_ONE);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	}
+	else if (m_blendMode == BLEND_MULTIPLY)
+	{
+		glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+		//glBlendFunc(GL_DST_COLOR, GL_ZERO);
+		glDepthMask(false);
+	}
+	else if (m_blendMode == BLEND_ALPHA)
+	{
+
+	}
+	else
+	{
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+
+	DrawSquare(m_textureID[0], 0, 0, m_width, m_height, GetColor().R, GetColor().G, GetColor().B);
+
+	glDepthMask(true);
+
 	glDisable(GL_BLEND);
-
+	glDisable(GL_ALPHA_TEST);
 }
 
+void Sprite::Draw(float xPos, float yPos, float rotation, float xScale, float yScale)
+{
+	m_transform.position.x = xPos;
+	m_transform.position.y = yPos;
+	m_transform.rotation = rotation;
+	m_transform.scale.x = xScale;
+	m_transform.scale.y = yScale;
 
+	Draw();
+}
+
+void Sprite::Draw(Vector2 position, float rotation, Vector2 scale)
+{
+	m_transform.position = position;
+	m_transform.rotation = rotation;
+	m_transform.scale = scale;
+
+	Draw();
+}
+
+void Sprite::Draw(Transform2D transform)
+{
+	m_transform = transform;
+
+	Draw();
+}

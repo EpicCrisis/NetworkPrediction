@@ -1,3 +1,4 @@
+
 #include "MyPhoton.h"
 #include <iostream>
 #include "Application.h"
@@ -78,7 +79,7 @@ void MyPhoton::joinRoomEventAction(int playerNr, const ExitGames::Common::JVecto
 
 	if (playernrs.getSize() >= 2)
 	{
-		Application::getInstance().sendMyData();
+		Application::getInstance().SendMyData();
 	}
 }
 

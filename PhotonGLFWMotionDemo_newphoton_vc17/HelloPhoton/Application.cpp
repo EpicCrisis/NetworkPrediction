@@ -1,3 +1,4 @@
+
 #include "Application.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -20,32 +21,79 @@ Application::~Application()
 {
 }
 
-void Application::start()
+void Application::Start()
 {
 	srand(time(0));
 
-	m_gameStarted = false;
+	m_gameState = GameState::STATE_WAITGAME;
 
 	MyPhoton::getInstance().connect();
 
-	m_sprite_ship_red		= new Sprite("../media/Spaceship_Red.bmp");
-	m_sprite_laser_red		= new Sprite("../media/Laser_Red.bmp");
-	m_sprite_rocket_red		= new Sprite("../media/Rocket_Red.bmp");
-	m_sprite_ship_blue		= new Sprite("../media/Spaceship_Blue.bmp");
-	m_sprite_laser_blue		= new Sprite("../media/Laser_Blue.bmp");
-	m_sprite_rocket_blue	= new Sprite("../media/Rocket_Blue.bmp");
+	m_sprite_ship_red.SetFilePath("../media/Spaceship_Red.bmp");
+	m_sprite_laser_red.SetFilePath("../media/Laser_Red.bmp");
+	m_sprite_rocket_red.SetFilePath("../media/Rocket_Red.bmp");
+	m_sprite_ship_blue.SetFilePath("../media/Spaceship_Blue.bmp");
+	m_sprite_laser_blue.SetFilePath("../media/Laser_Blue.bmp");
+	m_sprite_rocket_blue.SetFilePath("../media/Rocket_Blue.bmp");
 
-	m_object_ship0.setSprite(m_sprite_ship_red);
-	m_object_ship0.setPos(Vector(100.0f, 300.0f, 0.0f));
-	m_object_ship0.setRotation(0.0f);
-	m_object_ship0.setBlendMode(ADDITIVE);
+	m_object_ship0 = Spawn(Vector2(100.0f, 300.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_ship0->GetSprite().SetBlendingMode(BLEND_ADDITIVE);
 
-	m_object_ship1.setSprite(m_sprite_ship_blue);
-	m_object_ship1.setPos(Vector(100.0f, 300.0f, 0.0f));
-	m_object_ship1.setRotation(0.0f);
-	m_object_ship1.setBlendMode(ADDITIVE);
+	m_object_ship1 = Spawn(Vector2(700.0f, 300.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_ship1->GetSprite().SetBlendingMode(BLEND_ADDITIVE);
 
-	m_lastReceivedPos = m_object_ship1.getPos();
+	m_lastReceivedPos = m_object_ship1->GetTransform().position;
+}
+
+GameObject* Application::Spawn()
+{
+	return Spawn(new GameObject());
+}
+
+GameObject* Application::Spawn(GameObject * duplicate)
+{
+	m_GOs.GetList().push_back(duplicate);
+	return duplicate;
+}
+
+GameObject* Application::Spawn(Transform2D transform)
+{
+	GameObject* GO = new GameObject();
+	GO->SetTransform(transform);
+
+	return Spawn(GO);
+}
+
+GameObject* Application::Spawn(Vector2 position, float rotation, Vector2 scale)
+{
+	Transform2D transform;
+	transform.position = position;
+	transform.rotation = rotation;
+	transform.scale = scale;
+
+	return Spawn(transform);
+}
+
+GameObject& Application::FindGameObject(int index)
+{
+	return m_GOs.GetItem(index);
+}
+
+void Application::Destroy(GameObject * gameObject)
+{
+	GameObject* storedGOs = gameObject;
+	m_GOs.GetList().remove(gameObject);
+	delete gameObject;
+}
+
+void Application::SetGameState(GameState gameState)
+{
+	m_gameState = gameState;
+}
+
+GameState Application::GetGameState()
+{
+	return m_gameState;
 }
 
 void Application::SetPlayerNumber(int playerN)
@@ -57,31 +105,32 @@ void Application::SetPlayerNumber(int playerN)
 	}
 }
 
-void Application::CheckPlayerShipColour()
+// Change the colors of ship, laser, and rocket based on player.
+void Application::CheckPlayerColour()
 {
 	if (playerNumber == 1)
 	{
-		m_object_ship0.setSprite(m_sprite_ship_red);
-		m_object_ship1.setSprite(m_sprite_ship_blue);
+		m_object_ship0->SetSprite(m_sprite_ship_red);
+		m_object_ship1->SetSprite(m_sprite_ship_blue);
 	}
 	else if (playerNumber == 2)
 	{
-		m_object_ship0.setSprite(m_sprite_ship_blue);
-		m_object_ship1.setSprite(m_sprite_ship_red);
+		m_object_ship0->SetSprite(m_sprite_ship_blue);
+		m_object_ship1->SetSprite(m_sprite_ship_red);
 	}
 }
 
-void Application::sendMyData(void)
+void Application::SendMyData(void)
 {
-	Vector pos = m_object_ship0.getPos();
-	Vector vel = m_object_ship0.getVelocity();
-	Vector acc = m_object_ship0.getAcceleration();
+	Vector2 pos = m_object_ship0->GetTransform().position;
+	Vector2 vel = m_object_ship0->GetTransform().velocity;
+	Vector2 acc = m_object_ship0->GetTransform().acceleration;
 
 	MyPhoton::getInstance().sendMyData
 	(
-		pos.mVal[0], pos.mVal[1],
-		vel.mVal[0], vel.mVal[1],
-		acc.mVal[0], acc.mVal[1]
+		pos.x, pos.y,
+		vel.x, vel.y,
+		acc.x, acc.y
 	);
 }
 
@@ -92,114 +141,135 @@ void Application::networkUpdate()
 	double time = glfwGetTime();
 	if (time - prevTime >= gNetworkFrameTime)
 	{
-		sendMyData();
+		SendMyData();
 		prevTime = time;
 	}
 }
 
 void Application::limitVelAndPos(GameObject* go)
 {
-	if (go->getVelocity().length() > 200.0f)
+	if (go->GetTransform().velocity.Length() > 200.0f)
 	{
-		Vector vec = go->getVelocity();
-		vec.normalize();
+		Vector2 vec = go->GetTransform().velocity;
+		vec.Normalize();
 		vec *= 200.0f;
-		go->setVelocity(vec);
+		go->SetVelocity(vec);
 	}
 }
 
-void Application::update(double elapsedTime)
+void Application::Update(double elapsedTime)
 {
 	MyPhoton::getInstance().run();
 
-	if (!m_gameStarted)
+	if (m_gameState == GameState::STATE_WAITGAME)
 	{
 		return;
 	}
 
-	CheckPlayerShipColour();
+	CheckPlayerColour();
 
-	m_object_ship0.update(elapsedTime);
-	m_object_ship0.setAcceleration(Vector(0.0f, 0.0f, 0.0f));
-	limitVelAndPos(&m_object_ship0);
+	m_object_ship0->Update(elapsedTime);
+	m_object_ship0->SetAcceleration(Vector2(0.0f, 0.0f));
+	limitVelAndPos(m_object_ship0);
 
 	networkUpdate();
 
 	// update remote ship.
-	m_object_ship1.update(elapsedTime);
+	m_object_ship1->Update(elapsedTime);
 	// very slowly interpolate from on-going predicting pos to lastest received pos. 
 	// Without this interpolation, the offset of opponent position will keep being accumulated. 
-	m_object_ship1.setPos(m_object_ship1.getPos()*0.995f + m_lastReceivedPos * 0.005f);
-	limitVelAndPos(&m_object_ship1);
+	m_object_ship1->SetPosition
+	(
+		m_object_ship1->GetTransform().position * 0.995f + m_lastReceivedPos * 0.005f
+	);
+	limitVelAndPos(m_object_ship1);
 }
 
-void Application::draw()
+void Application::Draw()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (!m_gameStarted)
+	if (m_gameState == GameState::STATE_WAITGAME)
 	{
 		return;
 	}
 
-	m_object_ship0.draw();
-	m_object_ship1.draw();
+	// Draw function
+	iteGO = m_GOs.GetList().begin();
+	while (iteGO != m_GOs.GetList().end())
+	{
+		GameObject GO = **iteGO;
+		GO.Draw();
+		++iteGO;
+	}
 }
 
 
 void Application::OnReceivedOpponentData(float* data)
 {
-	if (m_gameStarted == false)
+	if (m_gameState == GameState::STATE_WAITGAME)
 	{
-		m_gameStarted = true;
-		m_object_ship1.setPos(Vector(data[0], data[1], 0));
+		m_gameState = GameState::STATE_STARTGAME;
+		m_object_ship1->SetPosition(Vector2(data[0], data[1]));
 
-		m_lastReceivedPos = m_object_ship1.getPos();
+		m_lastReceivedPos = m_object_ship1->GetTransform().position;
 		m_prevReceivedTime = glfwGetTime();
 		return;
 	}
 
 	// remote ship data.
-	m_lastReceivedPos = Vector(data[0], data[1], 0);
-	m_object_ship1.setVelocity(Vector(data[2], data[3], 0));
-	m_object_ship1.setAcceleration(Vector(data[4], data[5], 0));
+	m_lastReceivedPos = Vector2(data[0], data[1]);
+	m_object_ship1->SetVelocity(Vector2(data[2], data[3]));
+	m_object_ship1->SetAcceleration(Vector2(data[4], data[5]));
 }
 
 
-void Application::onKeyPressed(int key)
+void Application::OnKeyPressed(int key)
 {
 }
 
-void Application::onKeyReleased(int key)
+void Application::OnKeyReleased(int key)
 {
 }
 
-void Application::onKeyHold(int key)
+void Application::OnKeyHold(int key)
 {
-	if (!m_gameStarted)
+	if (m_gameState == GameState::STATE_WAITGAME)
 	{
 		return;
 	}
 
 	if (key == GLFW_KEY_W)
 	{
-		m_object_ship0.setAcceleration(m_object_ship0.getAcceleration() + Vector(0.0f, 200.0f, 0.0f));
+		m_object_ship0->SetAcceleration
+		(
+			m_object_ship0->GetTransform().acceleration + Vector2(0.0f, 200.0f)
+		);
 	}
 	if (key == GLFW_KEY_A)
 	{
-		m_object_ship0.setAcceleration(m_object_ship0.getAcceleration() + Vector(-200.0f, 0.0f, 0.0f));
+		m_object_ship0->SetAcceleration
+		(
+			m_object_ship0->GetTransform().acceleration + Vector2(-200.0f, 0.0f)
+		);
 	}
 	if (key == GLFW_KEY_S)
 	{
-		m_object_ship0.setAcceleration(m_object_ship0.getAcceleration() + Vector(0.0f, -200.0f, 0.0f));
+		m_object_ship0->SetAcceleration
+		(
+			m_object_ship0->GetTransform().acceleration + Vector2(0.0f, -200.0f)
+		);
 	}
 	if (key == GLFW_KEY_D)
 	{
-		m_object_ship0.setAcceleration(m_object_ship0.getAcceleration() + Vector(200.0f, 0.0f, 0.0f));
+		m_object_ship0->SetAcceleration
+		(
+			m_object_ship0->GetTransform().acceleration + Vector2(200.0f, 0.0f)
+		);
 	}
 }
 
-void Application::onMousePressed(int button)
+void Application::OnMousePressed(int button)
 {
 	if (button == GLFW_MOUSE_BUTTON_1)
 	{
@@ -211,11 +281,11 @@ void Application::onMousePressed(int button)
 	}
 }
 
-void Application::onMouseReleased(int button)
+void Application::OnMouseReleased(int button)
 {
 }
 
-void Application::onMouseHold(int button)
+void Application::OnMouseHold(int button)
 {
 	if (button == GLFW_MOUSE_BUTTON_1)
 	{
@@ -227,7 +297,7 @@ void Application::onMouseHold(int button)
 	}
 }
 
-void Application::onMouseMoved(double mousePosX, double mousePosY)
+void Application::OnMouseMoved(double mousePosX, double mousePosY)
 {
 	// Here should have an update that allows the head of the ship to look at the mouse position.
 	// Calculate rotation based on mouse position.

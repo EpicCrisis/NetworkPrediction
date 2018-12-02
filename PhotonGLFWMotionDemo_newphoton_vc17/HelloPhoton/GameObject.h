@@ -1,59 +1,42 @@
+
 #pragma once
+
 #include "Sprite.h"
+#include "Transform2D.h"
+#include <string>
 
 class GameObject
 {
 protected:
-	Sprite*	m_sprite;
-	Color m_color;
-	Vector m_position;
-	Vector m_scale;
-	Vector m_velocity;
-	Vector m_acceleration;
-	Vector m_pixelSize;
-	float m_radian;
-	BlendMode m_blendMode;
-
+	Transform2D m_transform;
+	Sprite m_sprite;
 
 public:
+	std::string name;
+
 	GameObject();
-	GameObject(Sprite* sprite);
-	GameObject(Sprite* sprite, float x, float y);
+	GameObject(Sprite& sprite);
 	~GameObject();
 
-	void setSprite(Sprite* sprite);
+	Transform2D GetTransform() { return m_transform; };
+	void SetTransform(Transform2D transform);
+	void SetTransform(Vector2 position, Vector2 scale, float rotation);
 
-	void setBlendMode(BlendMode blendMode);
+	void SetPosition(Vector2 position);
+	void SetScale(Vector2 scale);
+	void SetRotation(float rotation);
 
-	void setPos(Vector position);
-	void setPos(float x, float y);
-	Vector getPos();
+	Vector2 GetAcceleration() { return m_transform.acceleration; };
+	void SetAcceleration(Vector2 acceleration);
 
-	void setVelocity(Vector velocity);
-	void setVelocity(float velocityX, float velocityY);
-	Vector getVelocity();
+	Vector2 GetVelocity() { return m_transform.velocity; };
+	void SetVelocity(Vector2 velocity);
 
-	void setAcceleration(Vector acceleration);
-	Vector getAcceleration();
+	Sprite& GetSprite() { return m_sprite; };
+	void SetSprite(Sprite& sprite);
 
-	void setColor(Color color);
-	void setColor(float r, float g, float b, float a);
-	Color getColor();
-
-	void setScale(Vector scale);
-	void setScale(float xScale, float yScale);
-	Vector getScale();
-
-	void setRotation(float radian);
-	float getRotation();
-
-	void setPixelSize(float sizeX, float sizeY);
-	Vector getPixelSize();
-
-	virtual void start();
-	virtual void update(double elapsedTime);
-
-	virtual void draw();
-
+	void Start();
+	void Update(float deltaTime);
+	void Draw();
 };
 

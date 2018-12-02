@@ -1,7 +1,7 @@
+
 #pragma once
 
 #include <LoadBalancing-cpp/inc/Client.h>
-
 
 class MyPhoton : private ExitGames::LoadBalancing::Listener
 {
@@ -20,7 +20,6 @@ public:
 		static MyPhoton instance;
 		return instance;
 	}
-
 
 	void sendMyData(float xpos, float ypos, float xvel, float yvel, float xaccel, float yaccel);
 

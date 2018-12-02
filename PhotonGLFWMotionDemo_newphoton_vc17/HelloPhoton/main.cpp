@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <windows.h>
 #include <GL/GLU.h>
@@ -31,15 +32,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 {
 	if (action == GLFW_PRESS)
 	{
-		app.onKeyPressed(key);
+		app.OnKeyPressed(key);
 		gDownKeys.insert(key);
-
 	}
 	else if (action == GLFW_RELEASE)
 	{
-		app.onKeyReleased(key);
+		app.OnKeyReleased(key);
 		gDownKeys.erase(key);
-
 	}
 }
 
@@ -47,7 +46,7 @@ static void keyHoldCallback()
 {
 	for (set <int>::iterator iter = gDownKeys.begin(); iter != gDownKeys.end(); ++iter)
 	{
-		app.onKeyHold(*iter);
+		app.OnKeyHold(*iter);
 	}
 }
 
@@ -55,12 +54,12 @@ static void mouse_button_callback(GLFWwindow* window, int button, int action, in
 {
 	if (action == GLFW_PRESS)
 	{
-		app.onMousePressed(button);
+		app.OnMousePressed(button);
 		gDownMouseButtons.insert(button);
 	}
 	else if (action == GLFW_RELEASE)
 	{
-		app.onMouseReleased(button);
+		app.OnMouseReleased(button);
 		gDownMouseButtons.erase(button);
 	}
 }
@@ -70,13 +69,13 @@ static void mouseButtonHoldCallback()
 {
 	for (set <int>::iterator iter = gDownMouseButtons.begin(); iter != gDownMouseButtons.end(); ++iter)
 	{
-		app.onMouseHold(*iter);
+		app.OnMouseHold(*iter);
 	}
 }
 
 static void cursor_position_callback(GLFWwindow* window, double xPos, double yPos)
 {
-	app.onMouseMoved(xPos, yPos);
+	app.OnMouseMoved(xPos, yPos);
 }
 
 int main(void)
@@ -107,15 +106,15 @@ int main(void)
 	glfwSetCursorPosCallback(window, cursor_position_callback);
 
 	double prevTime = glfwGetTime();
-	app.start();
+	app.Start();
 
 	while (!glfwWindowShouldClose(window))
 	{
 		double currentTime = glfwGetTime();
 		double elapsedTime = currentTime - prevTime;
 
-		app.update(elapsedTime);
-		app.draw();
+		app.Update(elapsedTime);
+		app.Draw();
 
 		keyHoldCallback();
 		mouseButtonHoldCallback();

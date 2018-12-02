@@ -1,153 +1,76 @@
+
 #include "GameObject.h"
 
 GameObject::GameObject()
 {
-	setPos(0.0f, 0.0f);
-	setColor(1.0f, 1.0f, 1.0f, 1.0f);
-	setScale(1.0f, 1.0f);
-	setRotation(0.5f);
-	setBlendMode(BlendMode::NONE);
+	name = "Test";
 }
 
-GameObject::GameObject(Sprite* sprite)
+GameObject::GameObject(Sprite& sprite) : GameObject()
 {
-	m_sprite = sprite;
-	setPos(0.0f, 0.0f);
-	setColor(1.0f, 1.0f, 1.0f, 1.0f);
-	setScale(1.0f, 1.0f);
-	setBlendMode(BlendMode::NONE);
-
-}
-
-GameObject::GameObject(Sprite* sprite, float x, float y)
-{
-	m_sprite = sprite;
-	setPos(x, y);
-	setColor(1.0f, 1.0f, 1.0f, 1.0f);
-	setScale(1.0f, 1.0f);
-	setBlendMode(BlendMode::NONE);
+	SetSprite(sprite);
 }
 
 GameObject::~GameObject()
 {
 }
 
-void GameObject::setSprite(Sprite* sprite)
+void GameObject::SetTransform(Transform2D transform)
+{
+	m_transform = transform;
+}
+
+void GameObject::SetTransform(Vector2 position, Vector2 scale, float rotation)
+{
+	m_transform.position.x = position.x;
+	m_transform.position.y = position.y;
+	m_transform.scale.x = scale.x;
+	m_transform.scale.y = scale.y;
+	m_transform.rotation = rotation;
+}
+
+void GameObject::SetPosition(Vector2 position)
+{
+	m_transform.position = position;
+}
+
+void GameObject::SetScale(Vector2 scale)
+{
+	m_transform.scale = scale;
+}
+
+void GameObject::SetRotation(float rotation)
+{
+	m_transform.rotation = rotation;
+}
+
+void GameObject::SetAcceleration(Vector2 acceleration)
+{
+	m_transform.acceleration = acceleration;
+}
+
+void GameObject::SetVelocity(Vector2 velocity)
+{
+	m_transform.velocity = velocity;
+}
+
+void GameObject::SetSprite(Sprite& sprite)
 {
 	m_sprite = sprite;
 }
 
-void GameObject::setBlendMode(BlendMode blendMode)
+void GameObject::Start()
 {
-	m_blendMode = blendMode;
+
 }
 
-void GameObject::setPos(Vector position)
+void GameObject::Update(float deltaTime)
 {
-	m_position = position;
+	m_transform.velocity += m_transform.acceleration * deltaTime;
+	m_transform.position += m_transform.velocity * deltaTime;
 }
 
-void GameObject::setPos(float x, float y)
+void GameObject::Draw()
 {
-	m_position.set(x, y, 0);
+	GetSprite().Draw(GetTransform());
 }
-
-Vector GameObject::getPos()
-{
-	return m_position;
-}
-
-void GameObject::setColor(Color color)
-{
-	m_color = color;
-}
-
-void GameObject::setColor(float r, float g, float b, float a)
-{
-	m_color.m_r = r;
-	m_color.m_g = g;
-	m_color.m_b = b;
-	m_color.m_a = a;
-}
-
-Color GameObject::getColor()
-{
-	return m_color;
-}
-
-void GameObject::setScale(Vector scale)
-{
-	m_scale = scale;
-}
-
-void GameObject::setScale(float xScale, float yScale)
-{
-	m_scale.set(xScale, yScale, 0.0f);
-}
-
-Vector GameObject::getScale()
-{
-	return m_scale;
-}
-
-void GameObject::setRotation(float radian)
-{
-	m_radian = radian;
-}
-
-float GameObject::getRotation()
-{
-	return m_radian;
-}
-
-void GameObject::setPixelSize(float sizeX, float sizeY)
-{
-	m_pixelSize.set(sizeX, sizeY, 0.0f);
-}
-
-Vector GameObject::getPixelSize()
-{
-	return m_pixelSize;
-}
-
-void GameObject::setVelocity(Vector velocity)
-{
-	m_velocity = velocity;
-}
-
-void GameObject::setVelocity(float velocityX, float velocityY)
-{
-	m_velocity.set(velocityX, velocityY, 0);
-}
-
-Vector GameObject::getVelocity()
-{
-	return m_velocity;
-}
-
-void GameObject::setAcceleration(Vector acceleration)
-{
-	m_acceleration = acceleration;
-}
-
-Vector GameObject::getAcceleration()
-{
-	return m_acceleration;
-}
-
-void GameObject::start()
-{
-}
-
-void GameObject::update(double elapsedTime)
-{
-	m_velocity += m_acceleration * elapsedTime;
-	m_position += m_velocity * elapsedTime;
-}
-
-void GameObject::draw()
-{
-	m_sprite->draw(m_position, m_color, m_scale, m_radian, m_blendMode);
-}
-
-
