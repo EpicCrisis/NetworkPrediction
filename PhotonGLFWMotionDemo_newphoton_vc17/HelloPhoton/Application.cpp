@@ -1,10 +1,6 @@
 
 #include "Application.h"
-#include <GLFW/glfw3.h>
-#include <iostream>
 #include "MyPhoton.h"
-
-using namespace std;
 
 // The higher networkFPS, the higher bandwidth requirement of your game.
 // ** about 30FPS is common data sync rate for real time games
@@ -37,10 +33,7 @@ void Application::Start()
 	m_sprite_rocket_blue.SetFilePath("../media/Rocket_Blue.bmp");
 
 	m_object_ship0 = Spawn(Vector2(100.0f, 300.0f), 0.0f, Vector2(1.0f, 1.0f));
-	m_object_ship0->GetSprite().SetBlendingMode(BLEND_ADDITIVE);
-
 	m_object_ship1 = Spawn(Vector2(700.0f, 300.0f), 0.0f, Vector2(1.0f, 1.0f));
-	m_object_ship1->GetSprite().SetBlendingMode(BLEND_ADDITIVE);
 
 	m_lastReceivedPos = m_object_ship1->GetTransform().position;
 }
@@ -118,6 +111,8 @@ void Application::CheckPlayerColour()
 		m_object_ship0->SetSprite(m_sprite_ship_blue);
 		m_object_ship1->SetSprite(m_sprite_ship_red);
 	}
+	m_object_ship0->GetSprite().SetBlendingMode(BLEND_ADDITIVE);
+	m_object_ship1->GetSprite().SetBlendingMode(BLEND_ADDITIVE);
 }
 
 void Application::SendMyData(void)
@@ -204,11 +199,24 @@ void Application::Draw()
 	}
 }
 
-
 void Application::OnReceivedOpponentData(float* data)
 {
 	if (m_gameState == GameState::STATE_WAITGAME)
 	{
+		if (!doArrangePlayerPositionOnce)
+		{
+			doArrangePlayerPositionOnce = true;
+
+			if (playerNumber == 1)
+			{
+				m_object_ship0->SetPosition(Vector2(100.0f, 300.0f));
+			}
+			else if (playerNumber == 2)
+			{
+				m_object_ship0->SetPosition(Vector2(700.0f, 300.0f));
+			}
+		}
+
 		m_gameState = GameState::STATE_STARTGAME;
 		m_object_ship1->SetPosition(Vector2(data[0], data[1]));
 
@@ -222,7 +230,6 @@ void Application::OnReceivedOpponentData(float* data)
 	m_object_ship1->SetVelocity(Vector2(data[2], data[3]));
 	m_object_ship1->SetAcceleration(Vector2(data[4], data[5]));
 }
-
 
 void Application::OnKeyPressed(int key)
 {

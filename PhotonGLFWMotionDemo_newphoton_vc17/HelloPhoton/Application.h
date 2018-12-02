@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <GLFW/glfw3.h>
 #include "Sprite.h"
 #include "GameObject.h"
 #include "GameObjectContainer.h"
@@ -30,6 +31,8 @@ protected:
 	GameObject* m_object_ship1;
 
 	GameState m_gameState;
+
+	bool doArrangePlayerPositionOnce = false;
 
 	int playerNumber;
 	Vector2 mousePosition;
