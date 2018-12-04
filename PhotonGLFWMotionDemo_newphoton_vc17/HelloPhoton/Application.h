@@ -20,15 +20,24 @@ protected:
 	GameObjectContainer<GameObject> m_GOs;
 	std::list<GameObject*>::iterator iteGO;
 
+	// Get object position and add the pixel size, start from half size.
+	Vector2 shipHalfSize = Vector2(100.0f, 103.0f) * 0.5f;
+	Vector2 laserHalfSize = Vector2(20.0f, 64.0f) * 0.5f;
+	Vector2 rocketHalfSize = Vector2(20.0f, 80.0f) * 0.5f;
+	Vector2 asteroidHalfSize = Vector2(126.0f, 114.0f) * 0.5f;
+
 	Sprite m_sprite_ship_red;
 	Sprite m_sprite_laser_red;
 	Sprite m_sprite_rocket_red;
 	Sprite m_sprite_ship_blue;
 	Sprite m_sprite_laser_blue;
 	Sprite m_sprite_rocket_blue;
+	Sprite m_sprite_asteroid;
 
 	GameObject* m_object_ship0;
 	GameObject* m_object_ship1;
+	GameObject* m_object_asteroid0;
+	GameObject* m_object_asteroid1;
 
 	GameState m_gameState;
 
@@ -64,8 +73,14 @@ public:
 	void SetGameState(GameState state);
 	GameState GetGameState();
 
+	void InitializeSprites();
+	void InitializeObject();
+
 	void SetPlayerNumber(int playerN);
 	void CheckPlayerColour();
+	void UpdateObjectCollision();
+
+	bool CheckObjectCollision(GameObject* object0, GameObject* object1);
 
 	void SendMyData(void);
 	void OnReceivedOpponentData(float* data);

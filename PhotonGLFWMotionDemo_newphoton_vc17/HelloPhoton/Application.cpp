@@ -25,15 +25,9 @@ void Application::Start()
 
 	MyPhoton::getInstance().connect();
 
-	m_sprite_ship_red.SetFilePath("../media/Spaceship_Red.bmp");
-	m_sprite_laser_red.SetFilePath("../media/Laser_Red.bmp");
-	m_sprite_rocket_red.SetFilePath("../media/Rocket_Red.bmp");
-	m_sprite_ship_blue.SetFilePath("../media/Spaceship_Blue.bmp");
-	m_sprite_laser_blue.SetFilePath("../media/Laser_Blue.bmp");
-	m_sprite_rocket_blue.SetFilePath("../media/Rocket_Blue.bmp");
+	InitializeSprites();
 
-	m_object_ship0 = Spawn(Vector2(100.0f, 300.0f), 0.0f, Vector2(1.0f, 1.0f));
-	m_object_ship1 = Spawn(Vector2(700.0f, 300.0f), 0.0f, Vector2(1.0f, 1.0f));
+	InitializeObject();
 
 	m_lastReceivedPos = m_object_ship1->GetTransform().position;
 }
@@ -89,6 +83,44 @@ GameState Application::GetGameState()
 	return m_gameState;
 }
 
+void Application::InitializeSprites()
+{
+	m_sprite_ship_red.SetFilePath("../media/Spaceship_Red.bmp");
+	m_sprite_laser_red.SetFilePath("../media/Laser_Red.bmp");
+	m_sprite_rocket_red.SetFilePath("../media/Rocket_Red.bmp");
+	m_sprite_ship_blue.SetFilePath("../media/Spaceship_Blue.bmp");
+	m_sprite_laser_blue.SetFilePath("../media/Laser_Blue.bmp");
+	m_sprite_rocket_blue.SetFilePath("../media/Rocket_Blue.bmp");
+	m_sprite_asteroid.SetFilePath("../media/Asteroid.bmp");
+
+	m_sprite_ship_red.SetDimension(100.0f, 103.0f);
+	m_sprite_laser_red.SetDimension(20.0f, 64.0f);
+	m_sprite_rocket_red.SetDimension(20.0f, 80.0f);
+	m_sprite_ship_blue.SetDimension(100.0f, 103.0f);
+	m_sprite_laser_blue.SetDimension(20.0f, 64.0f);
+	m_sprite_rocket_blue.SetDimension(20.0f, 80.0f);
+	m_sprite_asteroid.SetDimension(126.0f, 114.0f);
+}
+
+void Application::InitializeObject()
+{
+	m_object_ship0 = Spawn(Vector2(100.0f, 300.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_ship1 = Spawn(Vector2(700.0f, 300.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_ship0->SetSprite(m_sprite_ship_red);
+	m_object_ship1->SetSprite(m_sprite_ship_blue);
+
+	m_object_asteroid0 = Spawn(Vector2(200.0f, 500.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_asteroid1 = Spawn(Vector2(600.0f, 100.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_asteroid0->SetSprite(m_sprite_asteroid);
+	m_object_asteroid1->SetSprite(m_sprite_asteroid);
+
+	m_object_ship0->SetHalfSize(shipHalfSize);
+	m_object_ship1->SetHalfSize(shipHalfSize);
+
+	m_object_asteroid0->SetHalfSize(asteroidHalfSize);
+	m_object_asteroid1->SetHalfSize(asteroidHalfSize);
+}
+
 void Application::SetPlayerNumber(int playerN)
 {
 	if (playerNumber == 0)
@@ -113,6 +145,45 @@ void Application::CheckPlayerColour()
 	}
 	m_object_ship0->GetSprite().SetBlendingMode(BLEND_ADDITIVE);
 	m_object_ship1->GetSprite().SetBlendingMode(BLEND_ADDITIVE);
+}
+
+void Application::UpdateObjectCollision()
+{
+	if (CheckObjectCollision(m_object_ship0, m_object_asteroid0))
+	{
+
+	}
+	if (CheckObjectCollision(m_object_ship0, m_object_asteroid1))
+	{
+
+	}
+	if (CheckObjectCollision(m_object_ship0, m_object_ship1))
+	{
+
+	}
+}
+
+bool Application::CheckObjectCollision(GameObject* object0, GameObject* object1)
+{
+	// Min max 0
+	Vector2 min_0 = object0->GetBoundStart();
+	Vector2 max_0 = object0->GetBoundEnd();
+
+	// Min max 1
+	Vector2 min_1 = object1->GetBoundStart();
+	Vector2 max_1 = object1->GetBoundEnd();
+
+	// Collision tests
+	if (max_0.x < min_1.x || min_0.x > max_1.x)
+	{
+		return false;
+	}
+	if (max_0.y < min_1.y || min_0.y > max_1.y)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 void Application::SendMyData(void)
@@ -162,6 +233,7 @@ void Application::Update(double elapsedTime)
 	}
 
 	CheckPlayerColour();
+	UpdateObjectCollision();
 
 	m_object_ship0->Update(elapsedTime);
 	m_object_ship0->SetAcceleration(Vector2(0.0f, 0.0f));

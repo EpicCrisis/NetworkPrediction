@@ -26,6 +26,14 @@ public:
 	void SetScale(Vector2 scale);
 	void SetRotation(float rotation);
 
+	// Must divide by half because position starts in the center.
+	Vector2 GetHalfSize() { return m_transform.halfSize; };
+	void SetHalfSize(Vector2 size);
+
+	// Get the bottom left corner and top right corner.
+	Vector2 GetBoundStart();
+	Vector2 GetBoundEnd();
+
 	Vector2 GetAcceleration() { return m_transform.acceleration; };
 	void SetAcceleration(Vector2 acceleration);
 

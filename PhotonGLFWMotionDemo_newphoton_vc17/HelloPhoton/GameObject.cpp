@@ -44,6 +44,31 @@ void GameObject::SetRotation(float rotation)
 	m_transform.rotation = rotation;
 }
 
+void GameObject::SetHalfSize(Vector2 size)
+{
+	m_transform.halfSize = size;
+}
+
+Vector2 GameObject::GetBoundStart()
+{
+	Vector2 pos = m_transform.position;
+	Vector2 halfSize = m_transform.halfSize;
+
+	Vector2 boundStart = pos - halfSize;
+
+	return boundStart;
+}
+
+Vector2 GameObject::GetBoundEnd()
+{
+	Vector2 pos = m_transform.position;
+	Vector2 halfSize = m_transform.halfSize;
+
+	Vector2 boundEnd = pos + halfSize;
+
+	return boundEnd;
+}
+
 void GameObject::SetAcceleration(Vector2 acceleration)
 {
 	m_transform.acceleration = acceleration;
