@@ -7,6 +7,9 @@
 #include "GameObjectContainer.h"
 #include <list>
 
+const int RESOLUTION_X = 800;
+const int RESOLUTION_Y = 600;
+
 enum GameState
 {
 	STATE_WAITGAME = 0,
@@ -20,36 +23,72 @@ protected:
 	GameObjectContainer<GameObject> m_GOs;
 	std::list<GameObject*>::iterator iteGO;
 
-	// Get object position and add the pixel size, start from half size.
-	Vector2 shipHalfSize = Vector2(100.0f, 103.0f) * 0.5f;
-	Vector2 laserHalfSize = Vector2(20.0f, 64.0f) * 0.5f;
-	Vector2 rocketHalfSize = Vector2(20.0f, 80.0f) * 0.5f;
-	Vector2 asteroidHalfSize = Vector2(126.0f, 114.0f) * 0.5f;
+	Vector2 shipSize = Vector2(80.0f, 80.0f);
+	Vector2 laserSize = Vector2(20.0f, 60.0f);
+	Vector2 rocketSize = Vector2(20.0f, 80.0f);
+	Vector2 asteroidSize = Vector2(100.0f, 100.0f);
+	Vector2 healthSize = Vector2(50.0f, 50.0f);
+
+	Vector2 shipHalfSize = shipSize * 0.5f;
+	Vector2 laserHalfSize = laserSize * 0.5f;
+	Vector2 rocketHalfSize = rocketSize * 0.5f;
+	Vector2 asteroidHalfSize = asteroidSize * 0.5f;
+	Vector2 healthHalfSize = healthSize * 0.5f;
 
 	Sprite m_sprite_ship_red;
 	Sprite m_sprite_laser_red;
 	Sprite m_sprite_rocket_red;
+	Sprite m_sprite_health_red;
 	Sprite m_sprite_ship_blue;
 	Sprite m_sprite_laser_blue;
 	Sprite m_sprite_rocket_blue;
+	Sprite m_sprite_health_blue;
 	Sprite m_sprite_asteroid;
 
 	GameObject* m_object_ship0;
 	GameObject* m_object_ship1;
 	GameObject* m_object_asteroid0;
 	GameObject* m_object_asteroid1;
+	GameObject* m_object_laser0;
+	GameObject* m_object_laser1;
+	GameObject* m_object_rocket0;
+	GameObject* m_object_rocket1;
+	GameObject* m_object_health_red;
+	GameObject* m_object_health_blue;
 
 	GameState m_gameState;
 
 	bool doArrangePlayerPositionOnce = false;
+
+	// Ship speed.
+	float maxShipSpeed = 200.0f;
+
+	// Ship health.
+	int healthShip0 = 3;
+	int healthShip1 = 3;
+
+	// Laser fire rate.
+	float laserfireRate = 60.0f;
+	float laserfireRateCounter = 0.0f;
+	bool isLaserUsed = false;
+
+	// Rocket fire rate.
+	float rocketfireRate = 180.0f;
+	float rocketfireRateCounter = 0.0f;
+	bool isRocketUsed = false;
+
+	// To add delay before ship can be damaged again.
+	float immuneDelay = 120.0f;
+	float immuneDelayCounter = 0.0f;
+	bool isImmune = false;
 
 	int playerNumber;
 	Vector2 mousePosition;
 	Vector2 m_lastReceivedPos;
 	double m_prevReceivedTime;
 
-	void networkUpdate();
-	void limitVelAndPos(GameObject* go);
+	void NetworkUpdate();
+	void LimitVelAndPos(GameObject* go);
 
 public:
 	Application();
@@ -74,13 +113,15 @@ public:
 	GameState GetGameState();
 
 	void InitializeSprites();
-	void InitializeObject();
+	void InitializeObjects();
 
 	void SetPlayerNumber(int playerN);
 	void CheckPlayerColour();
 	void UpdateObjectCollision();
+	float CalculateShipRotation(Vector2 shipPos, Vector2 mousePos);
 
 	bool CheckObjectCollision(GameObject* object0, GameObject* object1);
+	bool CheckBorderCollision(GameObject* object, Vector2 minBorder, Vector2 maxBorder);
 
 	void SendMyData(void);
 	void OnReceivedOpponentData(float* data);

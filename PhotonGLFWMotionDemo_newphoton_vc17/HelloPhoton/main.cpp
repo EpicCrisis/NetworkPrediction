@@ -8,9 +8,6 @@
 
 using namespace std;
 
-const int RESOLUTION_X = 800;
-const int RESOLUTION_Y = 600;
-
 Application& app = Application::getInstance();
 set <int> gDownKeys;
 set <int> gDownMouseButtons;

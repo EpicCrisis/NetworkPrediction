@@ -27,7 +27,7 @@ void Application::Start()
 
 	InitializeSprites();
 
-	InitializeObject();
+	InitializeObjects();
 
 	m_lastReceivedPos = m_object_ship1->GetTransform().position;
 }
@@ -86,36 +86,72 @@ GameState Application::GetGameState()
 void Application::InitializeSprites()
 {
 	m_sprite_ship_red.SetFilePath("../media/Spaceship_Red.bmp");
-	m_sprite_laser_red.SetFilePath("../media/Laser_Red.bmp");
-	m_sprite_rocket_red.SetFilePath("../media/Rocket_Red.bmp");
 	m_sprite_ship_blue.SetFilePath("../media/Spaceship_Blue.bmp");
+	m_sprite_laser_red.SetFilePath("../media/Laser_Red.bmp");
 	m_sprite_laser_blue.SetFilePath("../media/Laser_Blue.bmp");
+	m_sprite_rocket_red.SetFilePath("../media/Rocket_Red.bmp");
 	m_sprite_rocket_blue.SetFilePath("../media/Rocket_Blue.bmp");
 	m_sprite_asteroid.SetFilePath("../media/Asteroid.bmp");
+	m_sprite_health_red.SetFilePath("../media/Health_Red.bmp");
+	m_sprite_health_blue.SetFilePath("../media/Health_Blue.bmp");
 
-	m_sprite_ship_red.SetDimension(100.0f, 103.0f);
-	m_sprite_laser_red.SetDimension(20.0f, 64.0f);
-	m_sprite_rocket_red.SetDimension(20.0f, 80.0f);
-	m_sprite_ship_blue.SetDimension(100.0f, 103.0f);
-	m_sprite_laser_blue.SetDimension(20.0f, 64.0f);
-	m_sprite_rocket_blue.SetDimension(20.0f, 80.0f);
-	m_sprite_asteroid.SetDimension(126.0f, 114.0f);
+	m_sprite_ship_red.SetDimension(shipSize.x, shipSize.y);
+	m_sprite_ship_blue.SetDimension(shipSize.x, shipSize.y);
+	m_sprite_laser_red.SetDimension(laserSize.x, laserSize.y);
+	m_sprite_laser_blue.SetDimension(laserSize.x, laserSize.y);
+	m_sprite_rocket_red.SetDimension(rocketSize.x, rocketSize.y);
+	m_sprite_rocket_blue.SetDimension(rocketSize.x, rocketSize.y);
+	m_sprite_asteroid.SetDimension(asteroidSize.x, asteroidSize.y);
+	m_sprite_health_blue.SetDimension(healthSize.x, healthSize.y);
+	m_sprite_health_red.SetDimension(healthSize.x, healthSize.y);
 }
 
-void Application::InitializeObject()
+void Application::InitializeObjects()
 {
+	// Spawn and set sprite for the objects.
 	m_object_ship0 = Spawn(Vector2(100.0f, 300.0f), 0.0f, Vector2(1.0f, 1.0f));
 	m_object_ship1 = Spawn(Vector2(700.0f, 300.0f), 0.0f, Vector2(1.0f, 1.0f));
 	m_object_ship0->SetSprite(m_sprite_ship_red);
 	m_object_ship1->SetSprite(m_sprite_ship_blue);
+	
+	m_object_laser0 = Spawn(Vector2(-100.0f, -100.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_laser1 = Spawn(Vector2(100.0f, 100.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_laser0->SetSprite(m_sprite_laser_red);
+	m_object_laser1->SetSprite(m_sprite_laser_blue);
 
-	m_object_asteroid0 = Spawn(Vector2(200.0f, 500.0f), 0.0f, Vector2(1.0f, 1.0f));
-	m_object_asteroid1 = Spawn(Vector2(600.0f, 100.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_rocket0 = Spawn(Vector2(-100.0f, -100.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_rocket1 = Spawn(Vector2(-100.0f, -100.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_rocket0->SetSprite(m_sprite_rocket_red);
+	m_object_rocket1->SetSprite(m_sprite_rocket_blue);
+
+	m_object_asteroid0 = Spawn(Vector2(200.0f, 400.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_asteroid1 = Spawn(Vector2(600.0f, 200.0f), 0.0f, Vector2(1.0f, 1.0f));
 	m_object_asteroid0->SetSprite(m_sprite_asteroid);
 	m_object_asteroid1->SetSprite(m_sprite_asteroid);
 
+	for (int i = 0; i < healthShip0; ++i)
+	{
+		m_object_health_red = Spawn(Vector2(60.0f + (i * 60.0f), 540.0f), 0.0f, Vector2(1.0f, 1.0f));
+		m_object_health_red->SetSprite(m_sprite_health_red);
+		m_object_health_red->SetHalfSize(healthHalfSize);
+	}
+
+	for (int i = 0; i < healthShip1; ++i)
+	{
+		m_object_health_blue = Spawn(Vector2(740.0f + (i * -60.0f), 540.0f), 0.0f, Vector2(1.0f, 1.0f));
+		m_object_health_blue->SetSprite(m_sprite_health_blue);
+		m_object_health_blue->SetHalfSize(healthHalfSize);
+	}
+
+	// Set the size for the objects.
 	m_object_ship0->SetHalfSize(shipHalfSize);
 	m_object_ship1->SetHalfSize(shipHalfSize);
+
+	m_object_laser0->SetHalfSize(laserHalfSize);
+	m_object_laser1->SetHalfSize(laserHalfSize);
+
+	m_object_rocket0->SetHalfSize(rocketHalfSize);
+	m_object_rocket1->SetHalfSize(rocketHalfSize);
 
 	m_object_asteroid0->SetHalfSize(asteroidHalfSize);
 	m_object_asteroid1->SetHalfSize(asteroidHalfSize);
@@ -149,18 +185,48 @@ void Application::CheckPlayerColour()
 
 void Application::UpdateObjectCollision()
 {
+	if (CheckBorderCollision(m_object_ship0, Vector2(0.0f, 0.0f), Vector2(RESOLUTION_X, RESOLUTION_Y)))
+	{
+		m_object_ship0->SetVelocity(m_object_ship0->GetTransform().velocity * -1.0f);
+	}
 	if (CheckObjectCollision(m_object_ship0, m_object_asteroid0))
 	{
-
+		m_object_ship0->SetVelocity(m_object_ship0->GetTransform().velocity * -1.0f);
 	}
 	if (CheckObjectCollision(m_object_ship0, m_object_asteroid1))
 	{
-
+		m_object_ship0->SetVelocity(m_object_ship0->GetTransform().velocity * -1.0f);
 	}
 	if (CheckObjectCollision(m_object_ship0, m_object_ship1))
 	{
-
+		m_object_ship0->SetVelocity(m_object_ship0->GetTransform().velocity * -1.0f);
 	}
+	if (CheckObjectCollision(m_object_ship0, m_object_laser1))
+	{
+		m_object_laser1->SetTransform(Vector2(-100.0f, -100.0f), Vector2(1.0f, 1.0f), 0.0f);
+		m_object_laser1->SetAcceleration(Vector2(0.0f, 0.0f));
+		m_object_laser1->SetVelocity(Vector2(0.0f, 0.0f));
+
+		healthShip0 -= 1;
+		Destroy(m_object_health_red);
+	}
+	if (CheckObjectCollision(m_object_ship0, m_object_rocket1))
+	{
+		m_object_rocket1->SetTransform(Vector2(-100.0f, -100.0f), Vector2(1.0f, 1.0f), 0.0f);
+		m_object_rocket1->SetAcceleration(Vector2(0.0f, 0.0f));
+		m_object_rocket1->SetVelocity(Vector2(0.0f, 0.0f));
+
+		healthShip0 -= 1;
+		Destroy(m_object_health_red);
+	}
+}
+
+float Application::CalculateShipRotation(Vector2 shipPos, Vector2 mousePos)
+{
+	Vector2 dir = Vector2(mousePos - shipPos);
+	dir.Normalize();
+	float angle = (atan2(dir.x, dir.y) * 180.0f) / 3.142f;
+	return angle;
 }
 
 bool Application::CheckObjectCollision(GameObject* object0, GameObject* object1)
@@ -186,6 +252,29 @@ bool Application::CheckObjectCollision(GameObject* object0, GameObject* object1)
 	return true;
 }
 
+bool Application::CheckBorderCollision(GameObject* object, Vector2 minBorder, Vector2 maxBorder)
+{
+	// Min max 0
+	Vector2 min_0 = object->GetBoundStart();
+	Vector2 max_0 = object->GetBoundEnd();
+
+	// Min max 1
+	Vector2 min_border = minBorder;
+	Vector2 max_border = maxBorder;
+
+	// Collision tests
+	if (max_0.x > maxBorder.x || min_0.x < minBorder.x)
+	{
+		return true;
+	}
+	if (max_0.y > maxBorder.y || min_0.y < minBorder.y)
+	{
+		return true;
+	}
+
+	return false;
+}
+
 void Application::SendMyData(void)
 {
 	Vector2 pos = m_object_ship0->GetTransform().position;
@@ -200,7 +289,7 @@ void Application::SendMyData(void)
 	);
 }
 
-void Application::networkUpdate()
+void Application::NetworkUpdate()
 {
 	static double prevTime = glfwGetTime();
 
@@ -212,13 +301,13 @@ void Application::networkUpdate()
 	}
 }
 
-void Application::limitVelAndPos(GameObject* go)
+void Application::LimitVelAndPos(GameObject* go)
 {
-	if (go->GetTransform().velocity.Length() > 200.0f)
+	if (go->GetTransform().velocity.Length() > maxShipSpeed)
 	{
 		Vector2 vec = go->GetTransform().velocity;
 		vec.Normalize();
-		vec *= 200.0f;
+		vec *= maxShipSpeed;
 		go->SetVelocity(vec);
 	}
 }
@@ -235,11 +324,19 @@ void Application::Update(double elapsedTime)
 	CheckPlayerColour();
 	UpdateObjectCollision();
 
+	m_object_ship0->SetRotation
+	(
+		CalculateShipRotation
+		(
+			m_object_ship0->GetTransform().position, mousePosition
+		)
+	);
+
 	m_object_ship0->Update(elapsedTime);
 	m_object_ship0->SetAcceleration(Vector2(0.0f, 0.0f));
-	limitVelAndPos(m_object_ship0);
+	LimitVelAndPos(m_object_ship0);
 
-	networkUpdate();
+	NetworkUpdate();
 
 	// update remote ship.
 	m_object_ship1->Update(elapsedTime);
@@ -249,7 +346,7 @@ void Application::Update(double elapsedTime)
 	(
 		m_object_ship1->GetTransform().position * 0.995f + m_lastReceivedPos * 0.005f
 	);
-	limitVelAndPos(m_object_ship1);
+	LimitVelAndPos(m_object_ship1);
 }
 
 void Application::Draw()
@@ -322,28 +419,28 @@ void Application::OnKeyHold(int key)
 	{
 		m_object_ship0->SetAcceleration
 		(
-			m_object_ship0->GetTransform().acceleration + Vector2(0.0f, 200.0f)
+			m_object_ship0->GetTransform().acceleration + Vector2(0.0f, 400.0f)
 		);
 	}
 	if (key == GLFW_KEY_A)
 	{
 		m_object_ship0->SetAcceleration
 		(
-			m_object_ship0->GetTransform().acceleration + Vector2(-200.0f, 0.0f)
+			m_object_ship0->GetTransform().acceleration + Vector2(-400.0f, 0.0f)
 		);
 	}
 	if (key == GLFW_KEY_S)
 	{
 		m_object_ship0->SetAcceleration
 		(
-			m_object_ship0->GetTransform().acceleration + Vector2(0.0f, -200.0f)
+			m_object_ship0->GetTransform().acceleration + Vector2(0.0f, -400.0f)
 		);
 	}
 	if (key == GLFW_KEY_D)
 	{
 		m_object_ship0->SetAcceleration
 		(
-			m_object_ship0->GetTransform().acceleration + Vector2(200.0f, 0.0f)
+			m_object_ship0->GetTransform().acceleration + Vector2(400.0f, 0.0f)
 		);
 	}
 }
@@ -380,4 +477,5 @@ void Application::OnMouseMoved(double mousePosX, double mousePosY)
 {
 	// Here should have an update that allows the head of the ship to look at the mouse position.
 	// Calculate rotation based on mouse position.
+	mousePosition = Vector2(mousePosX, ((-mousePosY) + RESOLUTION_Y));
 }
