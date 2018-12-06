@@ -589,7 +589,6 @@ void Application::Update(double elapsedTime)
 	LimitVelAndPos(m_object_ship1);
 
 	m_object_laser1->Update(elapsedTime);
-
 	if (!isLaserUsed)
 	{
 		m_object_laser1->SetPosition
@@ -608,7 +607,7 @@ void Application::Update(double elapsedTime)
 	m_object_rocket1->Update(elapsedTime);
 	if (!isRocketUsed)
 	{
-		m_object_laser1->SetPosition
+		m_object_rocket1->SetPosition
 		(
 			m_lastReceivedPos_rocket1
 		);
