@@ -26,17 +26,37 @@ void MyPhoton::disconnect(void)
 	mLoadBalancingClient.disconnect();
 }
 
-void MyPhoton::sendMyData(float xpos, float ypos, float xvel, float yvel, float xaccel, float yaccel)
+void MyPhoton::sendMyData
+(
+	Vector2 shipPos, Vector2 shipVel, Vector2 shipAccel,
+	Vector2 laserPos0, Vector2 laserVel0, Vector2 laserAccel0,
+	Vector2 rocketPos0, Vector2 rocketVel0, Vector2 rocketAccel0
+)
 {
-	float data[6];
-	data[0] = xpos;
-	data[1] = ypos;
-	data[2] = xvel;
-	data[3] = yvel;
-	data[4] = xaccel;
-	data[5] = yaccel;
+	float data[18];
 
-	mLoadBalancingClient.opRaiseEvent(true, data, 6, 1);
+	data[ 0] = shipPos.x;
+	data[ 1] = shipPos.y;
+	data[ 2] = shipVel.x;
+	data[ 3] = shipVel.y;
+	data[ 4] = shipAccel.x;
+	data[ 5] = shipAccel.y;
+
+	data[ 6] = laserPos0.x;
+	data[ 7] = laserPos0.y;
+	data[ 8] = laserVel0.x;
+	data[ 9] = laserVel0.y;
+	data[10] = laserAccel0.x;
+	data[11] = laserAccel0.y;
+
+	data[12] = rocketPos0.x;
+	data[13] = rocketPos0.y;
+	data[14] = rocketVel0.x;
+	data[15] = rocketVel0.y;
+	data[16] = rocketAccel0.x;
+	data[17] = rocketAccel0.y;
+
+	mLoadBalancingClient.opRaiseEvent(true, data, 18, 1);
 }
 
 void MyPhoton::run(void)

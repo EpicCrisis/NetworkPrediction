@@ -2,6 +2,7 @@
 #pragma once
 
 #include <LoadBalancing-cpp/inc/Client.h>
+#include "Vector2.h"
 
 class MyPhoton : private ExitGames::LoadBalancing::Listener
 {
@@ -21,7 +22,12 @@ public:
 		return instance;
 	}
 
-	void sendMyData(float xpos, float ypos, float xvel, float yvel, float xaccel, float yaccel);
+	void sendMyData
+	(
+		Vector2 shipPos, Vector2 shipVel, Vector2 shipAccel,
+		Vector2 laserPos0, Vector2 laserVel0, Vector2 laserAccel0,
+		Vector2 rocketPos0, Vector2 rocketVel0, Vector2 rocketAccel0
+	);
 
 private:
 	// receive and print out debug out here

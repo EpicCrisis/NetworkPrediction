@@ -53,8 +53,8 @@ protected:
 	GameObject* m_object_laser1;
 	GameObject* m_object_rocket0;
 	GameObject* m_object_rocket1;
-	GameObject* m_object_health_red;
-	GameObject* m_object_health_blue;
+	GameObject* m_object_health0[3];
+	GameObject* m_object_health1[3];
 
 	GameState m_gameState;
 
@@ -84,8 +84,16 @@ protected:
 
 	int playerNumber;
 	Vector2 mousePosition;
-	Vector2 m_lastReceivedPos;
-	double m_prevReceivedTime;
+
+	// Used to calculate local interpolation.
+	Vector2 m_lastReceivedPos_ship1;
+	double m_prevReceivedTime_ship1;
+
+	Vector2 m_lastReceivedPos_laser1;
+	double m_prevReceivedTime_laser1;
+
+	Vector2 m_lastReceivedPos_rocket1;
+	double m_prevReceivedTime_rocket1;
 
 	void NetworkUpdate();
 	void LimitVelAndPos(GameObject* go);
@@ -119,6 +127,8 @@ public:
 	void CheckPlayerColour();
 	void UpdateObjectCollision();
 	float CalculateShipRotation(Vector2 shipPos, Vector2 mousePos);
+	void ShootLaser();
+	void ShootRocket();
 
 	bool CheckObjectCollision(GameObject* object0, GameObject* object1);
 	bool CheckBorderCollision(GameObject* object, Vector2 minBorder, Vector2 maxBorder);

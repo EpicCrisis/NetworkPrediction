@@ -22,8 +22,13 @@ public:
 	void SetTransform(Transform2D transform);
 	void SetTransform(Vector2 position, Vector2 scale, float rotation);
 
+	Vector2 GetPosition() { return m_transform.position; };
 	void SetPosition(Vector2 position);
+
+	Vector2 GetScale() { return m_transform.scale; };
 	void SetScale(Vector2 scale);
+
+	float GetRotation() { return m_transform.rotation; };
 	void SetRotation(float rotation);
 
 	// Must divide by half because position starts in the center.

@@ -17,21 +17,6 @@ Application::~Application()
 {
 }
 
-void Application::Start()
-{
-	srand(time(0));
-
-	m_gameState = GameState::STATE_WAITGAME;
-
-	MyPhoton::getInstance().connect();
-
-	InitializeSprites();
-
-	InitializeObjects();
-
-	m_lastReceivedPos = m_object_ship1->GetTransform().position;
-}
-
 GameObject* Application::Spawn()
 {
 	return Spawn(new GameObject());
@@ -83,6 +68,29 @@ GameState Application::GetGameState()
 	return m_gameState;
 }
 
+void Application::NetworkUpdate()
+{
+	static double prevTime = glfwGetTime();
+
+	double time = glfwGetTime();
+	if (time - prevTime >= gNetworkFrameTime)
+	{
+		SendMyData();
+		prevTime = time;
+	}
+}
+
+void Application::LimitVelAndPos(GameObject* go)
+{
+	if (go->GetVelocity().Length() > maxShipSpeed)
+	{
+		Vector2 vec = go->GetVelocity();
+		vec.Normalize();
+		vec *= maxShipSpeed;
+		go->SetVelocity(vec);
+	}
+}
+
 void Application::InitializeSprites()
 {
 	m_sprite_ship_red.SetFilePath("../media/Spaceship_Red.bmp");
@@ -131,16 +139,15 @@ void Application::InitializeObjects()
 
 	for (int i = 0; i < healthShip0; ++i)
 	{
-		m_object_health_red = Spawn(Vector2(60.0f + (i * 60.0f), 540.0f), 0.0f, Vector2(1.0f, 1.0f));
-		m_object_health_red->SetSprite(m_sprite_health_red);
-		m_object_health_red->SetHalfSize(healthHalfSize);
+		m_object_health0[i] = Spawn(Vector2(60.0f + (i * 60.0f), 540.0f), 0.0f, Vector2(1.0f, 1.0f));
+		m_object_health0[i]->SetSprite(m_sprite_health_red);
+		m_object_health0[i]->SetHalfSize(healthHalfSize);
 	}
-
 	for (int i = 0; i < healthShip1; ++i)
 	{
-		m_object_health_blue = Spawn(Vector2(740.0f + (i * -60.0f), 540.0f), 0.0f, Vector2(1.0f, 1.0f));
-		m_object_health_blue->SetSprite(m_sprite_health_blue);
-		m_object_health_blue->SetHalfSize(healthHalfSize);
+		m_object_health1[i] = Spawn(Vector2(740.0f + (i * -60.0f), 540.0f), 0.0f, Vector2(1.0f, 1.0f));
+		m_object_health1[i]->SetSprite(m_sprite_health_blue);
+		m_object_health1[i]->SetHalfSize(healthHalfSize);
 	}
 
 	// Set the size for the objects.
@@ -173,51 +180,98 @@ void Application::CheckPlayerColour()
 	{
 		m_object_ship0->SetSprite(m_sprite_ship_red);
 		m_object_ship1->SetSprite(m_sprite_ship_blue);
+
+		m_object_laser0->SetSprite(m_sprite_laser_red);
+		m_object_laser1->SetSprite(m_sprite_laser_blue);
+
+		m_object_rocket0->SetSprite(m_sprite_rocket_red);
+		m_object_rocket1->SetSprite(m_sprite_rocket_blue);
+
+		for (int i = 0; i < healthShip0; ++i)
+		{
+			m_object_health0[i]->SetPosition(Vector2(60.0f + (i * 60.0f), 540.0f));
+			m_object_health1[i]->SetPosition(Vector2(740.0f + (i * -60.0f), 540.0f));
+
+			m_object_health0[i]->SetSprite(m_sprite_health_red);
+			m_object_health1[i]->SetSprite(m_sprite_health_blue);
+		}
 	}
 	else if (playerNumber == 2)
 	{
 		m_object_ship0->SetSprite(m_sprite_ship_blue);
 		m_object_ship1->SetSprite(m_sprite_ship_red);
+
+		m_object_laser0->SetSprite(m_sprite_laser_blue);
+		m_object_laser1->SetSprite(m_sprite_laser_red);
+
+		m_object_rocket0->SetSprite(m_sprite_rocket_blue);
+		m_object_rocket1->SetSprite(m_sprite_rocket_red);
+
+		for (int i = 0; i < healthShip1; ++i)
+		{
+			m_object_health0[i]->SetPosition(Vector2(740.0f + (i * -60.0f), 540.0f));
+			m_object_health1[i]->SetPosition(Vector2(60.0f + (i * 60.0f), 540.0f));
+
+			m_object_health0[i]->SetSprite(m_sprite_health_blue);
+			m_object_health1[i]->SetSprite(m_sprite_health_red);
+		}
 	}
+
 	m_object_ship0->GetSprite().SetBlendingMode(BLEND_ADDITIVE);
 	m_object_ship1->GetSprite().SetBlendingMode(BLEND_ADDITIVE);
+	m_object_laser0->GetSprite().SetBlendingMode(BLEND_ADDITIVE);
+	m_object_laser1->GetSprite().SetBlendingMode(BLEND_ADDITIVE);
+	m_object_rocket0->GetSprite().SetBlendingMode(BLEND_ADDITIVE);
+	m_object_rocket1->GetSprite().SetBlendingMode(BLEND_ADDITIVE);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		m_object_health0[i]->GetSprite().SetBlendingMode(BLEND_ADDITIVE);
+		m_object_health1[i]->GetSprite().SetBlendingMode(BLEND_ADDITIVE);
+	}
 }
 
 void Application::UpdateObjectCollision()
 {
 	if (CheckBorderCollision(m_object_ship0, Vector2(0.0f, 0.0f), Vector2(RESOLUTION_X, RESOLUTION_Y)))
 	{
-		m_object_ship0->SetVelocity(m_object_ship0->GetTransform().velocity * -1.0f);
+		m_object_ship0->SetVelocity(m_object_ship0->GetVelocity() * -1.0f);
 	}
 	if (CheckObjectCollision(m_object_ship0, m_object_asteroid0))
 	{
-		m_object_ship0->SetVelocity(m_object_ship0->GetTransform().velocity * -1.0f);
+		m_object_ship0->SetVelocity(m_object_ship0->GetVelocity() * -1.0f);
 	}
 	if (CheckObjectCollision(m_object_ship0, m_object_asteroid1))
 	{
-		m_object_ship0->SetVelocity(m_object_ship0->GetTransform().velocity * -1.0f);
+		m_object_ship0->SetVelocity(m_object_ship0->GetVelocity() * -1.0f);
 	}
 	if (CheckObjectCollision(m_object_ship0, m_object_ship1))
 	{
-		m_object_ship0->SetVelocity(m_object_ship0->GetTransform().velocity * -1.0f);
+		m_object_ship0->SetVelocity(m_object_ship0->GetVelocity() * -1.0f);
 	}
-	if (CheckObjectCollision(m_object_ship0, m_object_laser1))
+	if (CheckObjectCollision(m_object_ship1, m_object_laser0))
 	{
-		m_object_laser1->SetTransform(Vector2(-100.0f, -100.0f), Vector2(1.0f, 1.0f), 0.0f);
-		m_object_laser1->SetAcceleration(Vector2(0.0f, 0.0f));
-		m_object_laser1->SetVelocity(Vector2(0.0f, 0.0f));
+		m_object_laser0->SetTransform(Vector2(-100.0f, -100.0f), Vector2(1.0f, 1.0f), 0.0f);
+		m_object_laser0->SetAcceleration(Vector2(0.0f, 0.0f));
+		m_object_laser0->SetVelocity(Vector2(0.0f, 0.0f));
 
-		healthShip0 -= 1;
-		Destroy(m_object_health_red);
+		if (healthShip1 >= 0)
+		{
+			healthShip1 -= 1;
+			Destroy(m_object_health1[healthShip1]);
+		}
 	}
-	if (CheckObjectCollision(m_object_ship0, m_object_rocket1))
+	if (CheckObjectCollision(m_object_ship1, m_object_rocket0))
 	{
-		m_object_rocket1->SetTransform(Vector2(-100.0f, -100.0f), Vector2(1.0f, 1.0f), 0.0f);
-		m_object_rocket1->SetAcceleration(Vector2(0.0f, 0.0f));
-		m_object_rocket1->SetVelocity(Vector2(0.0f, 0.0f));
+		m_object_rocket0->SetTransform(Vector2(-100.0f, -100.0f), Vector2(1.0f, 1.0f), 0.0f);
+		m_object_rocket0->SetAcceleration(Vector2(0.0f, 0.0f));
+		m_object_rocket0->SetVelocity(Vector2(0.0f, 0.0f));
 
-		healthShip0 -= 1;
-		Destroy(m_object_health_red);
+		if (healthShip1 >= 0)
+		{
+			healthShip1 -= 1;
+			Destroy(m_object_health1[healthShip1]);
+		}
 	}
 }
 
@@ -227,6 +281,34 @@ float Application::CalculateShipRotation(Vector2 shipPos, Vector2 mousePos)
 	dir.Normalize();
 	float angle = (atan2(dir.x, dir.y) * 180.0f) / 3.142f;
 	return angle;
+}
+
+void Application::ShootLaser()
+{
+	m_object_laser0->SetPosition
+	(
+		Vector2
+		(
+			m_object_ship0->GetPosition().x, 
+			m_object_ship0->GetPosition().y + shipHalfSize.y
+		)
+	);
+
+	m_object_laser0->SetRotation(m_object_ship0->GetRotation());
+}
+
+void Application::ShootRocket()
+{
+	m_object_rocket0->SetPosition
+	(
+		Vector2
+		(
+			m_object_ship0->GetPosition().x,
+			m_object_ship0->GetPosition().y + shipHalfSize.y
+		)
+	);
+
+	m_object_rocket0->SetRotation(m_object_ship0->GetRotation());
 }
 
 bool Application::CheckObjectCollision(GameObject* object0, GameObject* object1)
@@ -277,39 +359,198 @@ bool Application::CheckBorderCollision(GameObject* object, Vector2 minBorder, Ve
 
 void Application::SendMyData(void)
 {
-	Vector2 pos = m_object_ship0->GetTransform().position;
-	Vector2 vel = m_object_ship0->GetTransform().velocity;
-	Vector2 acc = m_object_ship0->GetTransform().acceleration;
+	Vector2 pos_ship0 = m_object_ship0->GetPosition();
+	Vector2 vel_ship0 = m_object_ship0->GetVelocity();
+	Vector2 acc_ship0 = m_object_ship0->GetAcceleration();
+	Vector2 pos_laser0 = m_object_laser0->GetPosition();
+	Vector2 vel_laser0 = m_object_laser0->GetVelocity();
+	Vector2 acc_laser0 = m_object_laser0->GetAcceleration();
+	Vector2 pos_rocket0 = m_object_rocket0->GetPosition();
+	Vector2 vel_rocket0 = m_object_rocket0->GetVelocity();
+	Vector2 acc_rocket0 = m_object_rocket0->GetAcceleration();
 
 	MyPhoton::getInstance().sendMyData
 	(
-		pos.x, pos.y,
-		vel.x, vel.y,
-		acc.x, acc.y
+		pos_ship0, vel_ship0, acc_ship0,
+		pos_laser0, vel_laser0, acc_laser0,
+		pos_rocket0, vel_rocket0, acc_rocket0
 	);
 }
 
-void Application::NetworkUpdate()
+// Things to update...
+// Ship position, ship rotation, laser position, laser rotation, ship health
+void Application::OnReceivedOpponentData(float* data)
 {
-	static double prevTime = glfwGetTime();
-
-	double time = glfwGetTime();
-	if (time - prevTime >= gNetworkFrameTime)
+	if (m_gameState == GameState::STATE_WAITGAME)
 	{
-		SendMyData();
-		prevTime = time;
+		if (!doArrangePlayerPositionOnce)
+		{
+			doArrangePlayerPositionOnce = true;
+
+			if (playerNumber == 1)
+			{
+				m_object_ship0->SetPosition(Vector2(100.0f, 300.0f));
+			}
+			else if (playerNumber == 2)
+			{
+				m_object_ship0->SetPosition(Vector2(700.0f, 300.0f));
+			}
+
+			CheckPlayerColour();
+		}
+
+		m_gameState = GameState::STATE_STARTGAME;
+
+		// ship : 0 ~ 5, laser0 : 6 ~ 11, rocket0 : 12 ~ 17, laser1 : 18 ~ 23, rocket1 : 24 ~ 29
+
+		m_object_ship1->SetPosition(Vector2(data[0], data[1]));
+		m_lastReceivedPos_ship1 = m_object_ship1->GetPosition();
+		m_prevReceivedTime_ship1 = glfwGetTime();
+
+		m_object_laser1->SetPosition(Vector2(data[6], data[7]));
+		m_lastReceivedPos_laser1 = m_object_laser1->GetPosition();
+		m_prevReceivedTime_laser1 = glfwGetTime();
+
+		m_object_rocket0->SetPosition(Vector2(data[12], data[13]));
+		m_lastReceivedPos_rocket1 = m_object_rocket1->GetPosition();
+		m_prevReceivedTime_rocket1 = glfwGetTime();
+
+		return;
+	}
+
+	// remote ship data.
+	m_lastReceivedPos_ship1 = Vector2(data[0], data[1]);
+	m_object_ship1->SetVelocity(Vector2(data[2], data[3]));
+	m_object_ship1->SetAcceleration(Vector2(data[4], data[5]));
+
+	m_lastReceivedPos_laser1 = Vector2(data[6], data[7]);
+	m_object_laser1->SetVelocity(Vector2(data[8], data[9]));
+	m_object_laser1->SetAcceleration(Vector2(data[10], data[11]));
+
+	m_lastReceivedPos_rocket1 = Vector2(data[12], data[13]);
+	m_object_rocket1->SetVelocity(Vector2(data[14], data[15]));
+	m_object_rocket1->SetAcceleration(Vector2(data[16], data[17]));
+}
+
+void Application::OnKeyPressed(int key)
+{
+	if (m_gameState == GameState::STATE_WAITGAME)
+	{
+		return;
 	}
 }
 
-void Application::LimitVelAndPos(GameObject* go)
+void Application::OnKeyReleased(int key)
 {
-	if (go->GetTransform().velocity.Length() > maxShipSpeed)
+	if (m_gameState == GameState::STATE_WAITGAME)
 	{
-		Vector2 vec = go->GetTransform().velocity;
-		vec.Normalize();
-		vec *= maxShipSpeed;
-		go->SetVelocity(vec);
+		return;
 	}
+}
+
+void Application::OnKeyHold(int key)
+{
+	if (m_gameState == GameState::STATE_WAITGAME)
+	{
+		return;
+	}
+
+	if (key == GLFW_KEY_W)
+	{
+		m_object_ship0->SetAcceleration
+		(
+			m_object_ship0->GetAcceleration() + Vector2(0.0f, 400.0f)
+		);
+	}
+	if (key == GLFW_KEY_A)
+	{
+		m_object_ship0->SetAcceleration
+		(
+			m_object_ship0->GetAcceleration() + Vector2(-400.0f, 0.0f)
+		);
+	}
+	if (key == GLFW_KEY_S)
+	{
+		m_object_ship0->SetAcceleration
+		(
+			m_object_ship0->GetAcceleration() + Vector2(0.0f, -400.0f)
+		);
+	}
+	if (key == GLFW_KEY_D)
+	{
+		m_object_ship0->SetAcceleration
+		(
+			m_object_ship0->GetAcceleration() + Vector2(400.0f, 0.0f)
+		);
+	}
+}
+
+void Application::OnMousePressed(int button)
+{
+	if (m_gameState == GameState::STATE_WAITGAME)
+	{
+		return;
+	}
+
+	// Shoot laser
+	if (button == GLFW_MOUSE_BUTTON_1)
+	{
+		ShootLaser();
+	}
+	// Shoot rocket
+	if (button == GLFW_MOUSE_BUTTON_2)
+	{
+		ShootRocket();
+	}
+}
+
+void Application::OnMouseReleased(int button)
+{
+	if (m_gameState == GameState::STATE_WAITGAME)
+	{
+		return;
+	}
+}
+
+void Application::OnMouseHold(int button)
+{
+	if (m_gameState == GameState::STATE_WAITGAME)
+	{
+		return;
+	}
+
+	if (button == GLFW_MOUSE_BUTTON_1)
+	{
+
+	}
+	if (button == GLFW_MOUSE_BUTTON_2)
+	{
+
+	}
+}
+
+void Application::OnMouseMoved(double mousePosX, double mousePosY)
+{
+	if (m_gameState == GameState::STATE_WAITGAME)
+	{
+		return;
+	}
+
+	// Here should have an update that allows the head of the ship to look at the mouse position.
+	// Calculate rotation based on mouse position.
+	mousePosition = Vector2(mousePosX, ((-mousePosY) + RESOLUTION_Y));
+}
+
+void Application::Start()
+{
+	srand(time(0));
+
+	m_gameState = GameState::STATE_WAITGAME;
+
+	MyPhoton::getInstance().connect();
+
+	InitializeSprites();
+	InitializeObjects();
 }
 
 void Application::Update(double elapsedTime)
@@ -321,14 +562,13 @@ void Application::Update(double elapsedTime)
 		return;
 	}
 
-	CheckPlayerColour();
 	UpdateObjectCollision();
 
 	m_object_ship0->SetRotation
 	(
 		CalculateShipRotation
 		(
-			m_object_ship0->GetTransform().position, mousePosition
+			m_object_ship0->GetPosition(), mousePosition
 		)
 	);
 
@@ -344,9 +584,42 @@ void Application::Update(double elapsedTime)
 	// Without this interpolation, the offset of opponent position will keep being accumulated. 
 	m_object_ship1->SetPosition
 	(
-		m_object_ship1->GetTransform().position * 0.995f + m_lastReceivedPos * 0.005f
+		m_object_ship1->GetPosition() * 0.995f + m_lastReceivedPos_ship1 * 0.005f
 	);
 	LimitVelAndPos(m_object_ship1);
+
+	m_object_laser1->Update(elapsedTime);
+
+	if (!isLaserUsed)
+	{
+		m_object_laser1->SetPosition
+		(
+			m_lastReceivedPos_laser1
+		);
+	}
+	else
+	{
+		m_object_laser1->SetPosition
+		(
+			m_object_laser1->GetPosition() * 0.995f + m_lastReceivedPos_laser1 * 0.005f
+		);
+	}
+
+	m_object_rocket1->Update(elapsedTime);
+	if (!isRocketUsed)
+	{
+		m_object_laser1->SetPosition
+		(
+			m_lastReceivedPos_rocket1
+		);
+	}
+	else
+	{
+		m_object_rocket1->SetPosition
+		(
+			m_object_rocket1->GetPosition() * 0.995f + m_lastReceivedPos_rocket1 * 0.005f
+		);
+	}
 }
 
 void Application::Draw()
@@ -366,116 +639,4 @@ void Application::Draw()
 		GO.Draw();
 		++iteGO;
 	}
-}
-
-void Application::OnReceivedOpponentData(float* data)
-{
-	if (m_gameState == GameState::STATE_WAITGAME)
-	{
-		if (!doArrangePlayerPositionOnce)
-		{
-			doArrangePlayerPositionOnce = true;
-
-			if (playerNumber == 1)
-			{
-				m_object_ship0->SetPosition(Vector2(100.0f, 300.0f));
-			}
-			else if (playerNumber == 2)
-			{
-				m_object_ship0->SetPosition(Vector2(700.0f, 300.0f));
-			}
-		}
-
-		m_gameState = GameState::STATE_STARTGAME;
-		m_object_ship1->SetPosition(Vector2(data[0], data[1]));
-
-		m_lastReceivedPos = m_object_ship1->GetTransform().position;
-		m_prevReceivedTime = glfwGetTime();
-		return;
-	}
-
-	// remote ship data.
-	m_lastReceivedPos = Vector2(data[0], data[1]);
-	m_object_ship1->SetVelocity(Vector2(data[2], data[3]));
-	m_object_ship1->SetAcceleration(Vector2(data[4], data[5]));
-}
-
-void Application::OnKeyPressed(int key)
-{
-}
-
-void Application::OnKeyReleased(int key)
-{
-}
-
-void Application::OnKeyHold(int key)
-{
-	if (m_gameState == GameState::STATE_WAITGAME)
-	{
-		return;
-	}
-
-	if (key == GLFW_KEY_W)
-	{
-		m_object_ship0->SetAcceleration
-		(
-			m_object_ship0->GetTransform().acceleration + Vector2(0.0f, 400.0f)
-		);
-	}
-	if (key == GLFW_KEY_A)
-	{
-		m_object_ship0->SetAcceleration
-		(
-			m_object_ship0->GetTransform().acceleration + Vector2(-400.0f, 0.0f)
-		);
-	}
-	if (key == GLFW_KEY_S)
-	{
-		m_object_ship0->SetAcceleration
-		(
-			m_object_ship0->GetTransform().acceleration + Vector2(0.0f, -400.0f)
-		);
-	}
-	if (key == GLFW_KEY_D)
-	{
-		m_object_ship0->SetAcceleration
-		(
-			m_object_ship0->GetTransform().acceleration + Vector2(400.0f, 0.0f)
-		);
-	}
-}
-
-void Application::OnMousePressed(int button)
-{
-	if (button == GLFW_MOUSE_BUTTON_1)
-	{
-
-	}
-	if (button == GLFW_MOUSE_BUTTON_2)
-	{
-
-	}
-}
-
-void Application::OnMouseReleased(int button)
-{
-}
-
-void Application::OnMouseHold(int button)
-{
-	if (button == GLFW_MOUSE_BUTTON_1)
-	{
-
-	}
-	if (button == GLFW_MOUSE_BUTTON_2)
-	{
-
-	}
-}
-
-void Application::OnMouseMoved(double mousePosX, double mousePosY)
-{
-	// Here should have an update that allows the head of the ship to look at the mouse position.
-	// Calculate rotation based on mouse position.
-	mousePosition = Vector2(mousePosX, ((-mousePosY) + RESOLUTION_Y));
 }
