@@ -80,17 +80,9 @@ protected:
 	bool isRocketLoading = false;
 
 	// To add delay before ship can be damaged again.
-	float immuneDelay = 1.0f;
+	float immuneDelay = 3.0f;
 	float immuneDelayCounter = 0.0f;
 	bool isImmune = false;
-
-	// Send this data to show that the remote ship has shot.
-	float sendLaserValue = 0.0f;
-	float sendRocketValue = 0.0f;
-	float returnLaserValue = 0.0f;
-	float returnRocketValue = 0.0f;
-	float sendHealthValue = 0.0f;
-	float returnHealthValue = 0.0f;
 
 	int playerNumber;
 	Vector2 mousePosition;
