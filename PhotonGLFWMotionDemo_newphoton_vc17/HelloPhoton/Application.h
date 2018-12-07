@@ -68,32 +68,39 @@ protected:
 	int healthShip1 = 3;
 
 	// Laser fire rate.
-	float laserfireRate = 60.0f;
+	float laserfireRate = 1.0f;
 	float laserfireRateCounter = 0.0f;
-	bool isLaserUsed = false;
+	bool isLaserUsing = false;
+	bool isLaserLoading = false;
 
 	// Rocket fire rate.
-	float rocketfireRate = 180.0f;
+	float rocketfireRate = 3.0f;
 	float rocketfireRateCounter = 0.0f;
-	bool isRocketUsed = false;
+	bool isRocketUsing = false;
+	bool isRocketLoading = false;
 
 	// To add delay before ship can be damaged again.
-	float immuneDelay = 120.0f;
+	float immuneDelay = 1.0f;
 	float immuneDelayCounter = 0.0f;
 	bool isImmune = false;
+
+	// Send this data to show that the remote ship has shot.
+	float sendLaserValue = 0.0f;
+	float sendRocketValue = 0.0f;
+	float returnLaserValue = 0.0f;
+	float returnRocketValue = 0.0f;
 
 	int playerNumber;
 	Vector2 mousePosition;
 
 	// Used to calculate local interpolation.
 	Vector2 m_lastReceivedPos_ship1;
-	double m_prevReceivedTime_ship1;
-
 	Vector2 m_lastReceivedPos_laser1;
-	double m_prevReceivedTime_laser1;
-
 	Vector2 m_lastReceivedPos_rocket1;
-	double m_prevReceivedTime_rocket1;
+
+	float m_lastReceivedRot_ship1;
+	float m_lastReceivedRot_laser1;
+	float m_lastReceivedRot_rocket1;
 
 	void NetworkUpdate();
 	void LimitVelAndPos(GameObject* go);
@@ -127,8 +134,16 @@ public:
 	void CheckPlayerColour();
 	void UpdateObjectCollision();
 	float CalculateShipRotation(Vector2 shipPos, Vector2 mousePos);
+	void DamageBlink(GameObject* object); // Get the object and make it white, based on immune delay.
+
+	// Separate shoot mechanic into two, one to detect if the projectile is being used,
+	// and one to detect if the ship is loading projectile, both must be false to shoot.
 	void ShootLaser();
 	void ShootRocket();
+	void UpdateLaser(float deltaTime);
+	void UpdateRocket(float deltaTime);
+	void UpdateLocalShip(float deltaTime);
+	void UpdateRemoteShip(float deltaTime);
 
 	bool CheckObjectCollision(GameObject* object0, GameObject* object1);
 	bool CheckBorderCollision(GameObject* object, Vector2 minBorder, Vector2 maxBorder);

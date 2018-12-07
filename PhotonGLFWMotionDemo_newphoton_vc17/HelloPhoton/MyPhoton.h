@@ -26,7 +26,9 @@ public:
 	(
 		Vector2 shipPos, Vector2 shipVel, Vector2 shipAccel,
 		Vector2 laserPos0, Vector2 laserVel0, Vector2 laserAccel0,
-		Vector2 rocketPos0, Vector2 rocketVel0, Vector2 rocketAccel0
+		Vector2 rocketPos0, Vector2 rocketVel0, Vector2 rocketAccel0,
+		float shotLaser, float shotRocket, 
+		float shipRot, float laserRot, float rocketRot
 	);
 
 private:
