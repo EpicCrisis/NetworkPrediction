@@ -89,6 +89,8 @@ protected:
 	float sendRocketValue = 0.0f;
 	float returnLaserValue = 0.0f;
 	float returnRocketValue = 0.0f;
+	float sendHealthValue = 0.0f;
+	float returnHealthValue = 0.0f;
 
 	int playerNumber;
 	Vector2 mousePosition;
@@ -140,10 +142,13 @@ public:
 	// and one to detect if the ship is loading projectile, both must be false to shoot.
 	void ShootLaser();
 	void ShootRocket();
-	void UpdateLaser(float deltaTime);
-	void UpdateRocket(float deltaTime);
+	void UpdateLocalLaser(float deltaTime);
+	void UpdateRemoteLaser(float deltaTime);
+	void UpdateLocalRocket(float deltaTime);
+	void UpdateRemoteRocket(float deltaTime);
 	void UpdateLocalShip(float deltaTime);
 	void UpdateRemoteShip(float deltaTime);
+	void UpdateRemoteShipHealth();
 
 	bool CheckObjectCollision(GameObject* object0, GameObject* object1);
 	bool CheckBorderCollision(GameObject* object, Vector2 minBorder, Vector2 maxBorder);

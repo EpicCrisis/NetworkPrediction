@@ -31,11 +31,12 @@ void MyPhoton::sendMyData
 	Vector2 shipPos, Vector2 shipVel, Vector2 shipAccel,
 	Vector2 laserPos0, Vector2 laserVel0, Vector2 laserAccel0,
 	Vector2 rocketPos0, Vector2 rocketVel0, Vector2 rocketAccel0,
-	float shotLaser, float shotRocket, 
-	float shipRot, float laserRot, float rocketRot
+	float returnLaser, float returnRocket, 
+	float shipRot, float laserRot, float rocketRot,
+	float returnHealth
 )
 {
-	float data[23];
+	float data[24];
 
 	data[ 0] = shipPos.x;
 	data[ 1] = shipPos.y;
@@ -58,14 +59,16 @@ void MyPhoton::sendMyData
 	data[16] = rocketAccel0.x;
 	data[17] = rocketAccel0.y;
 
-	data[18] = shotLaser;
-	data[19] = shotRocket;
+	data[18] = returnLaser;
+	data[19] = returnRocket;
 
 	data[20] = shipRot;
 	data[21] = laserRot;
 	data[22] = rocketRot;
 
-	mLoadBalancingClient.opRaiseEvent(true, data, 23, 1);
+	data[23] = returnHealth;
+
+	mLoadBalancingClient.opRaiseEvent(true, data, 24, 1);
 }
 
 void MyPhoton::run(void)
