@@ -102,6 +102,8 @@ void Application::InitializeSprites()
 	m_sprite_asteroid.SetFilePath("../media/Asteroid.bmp");
 	m_sprite_health_red.SetFilePath("../media/Health_Red.bmp");
 	m_sprite_health_blue.SetFilePath("../media/Health_Blue.bmp");
+	m_sprite_win.SetFilePath("../media/You_Win.bmp");
+	m_sprite_lose.SetFilePath("../media/You_Lose.bmp");
 
 	m_sprite_ship_red.SetDimension(shipSize.x, shipSize.y);
 	m_sprite_ship_blue.SetDimension(shipSize.x, shipSize.y);
@@ -112,6 +114,8 @@ void Application::InitializeSprites()
 	m_sprite_asteroid.SetDimension(asteroidSize.x, asteroidSize.y);
 	m_sprite_health_blue.SetDimension(healthSize.x, healthSize.y);
 	m_sprite_health_red.SetDimension(healthSize.x, healthSize.y);
+	m_sprite_win.SetDimension(winSize.x, winSize.y);
+	m_sprite_lose.SetDimension(loseSize.x, loseSize.y);
 }
 
 void Application::InitializeObjects()
@@ -122,13 +126,13 @@ void Application::InitializeObjects()
 	m_object_ship0->SetSprite(m_sprite_ship_red);
 	m_object_ship1->SetSprite(m_sprite_ship_blue);
 	
-	m_object_laser0 = Spawn(Vector2(-100.0f, -100.0f), 0.0f, Vector2(1.0f, 1.0f));
-	m_object_laser1 = Spawn(Vector2(100.0f, 100.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_laser0 = Spawn(Vector2(-200.0f, -200.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_laser1 = Spawn(Vector2(-200.0f, -200.0f), 0.0f, Vector2(1.0f, 1.0f));
 	m_object_laser0->SetSprite(m_sprite_laser_red);
 	m_object_laser1->SetSprite(m_sprite_laser_blue);
 
-	m_object_rocket0 = Spawn(Vector2(-100.0f, -100.0f), 0.0f, Vector2(1.0f, 1.0f));
-	m_object_rocket1 = Spawn(Vector2(-100.0f, -100.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_rocket0 = Spawn(Vector2(-200.0f, -200.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_rocket1 = Spawn(Vector2(-200.0f, -200.0f), 0.0f, Vector2(1.0f, 1.0f));
 	m_object_rocket0->SetSprite(m_sprite_rocket_red);
 	m_object_rocket1->SetSprite(m_sprite_rocket_blue);
 
@@ -136,6 +140,9 @@ void Application::InitializeObjects()
 	m_object_asteroid1 = Spawn(Vector2(600.0f, 200.0f), 0.0f, Vector2(1.0f, 1.0f));
 	m_object_asteroid0->SetSprite(m_sprite_asteroid);
 	m_object_asteroid1->SetSprite(m_sprite_asteroid);
+
+	m_object_winLose = Spawn(Vector2(-200.0f, -200.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_winLose->SetSprite(m_sprite_win);
 
 	for (int i = 0; i < healthShip0; ++i)
 	{
@@ -196,7 +203,7 @@ void Application::CheckPlayerColour()
 			m_object_health1[i]->SetSprite(m_sprite_health_blue);
 		}
 	}
-	else if (playerNumber == 2)
+	if (playerNumber == 2)
 	{
 		m_object_ship0->SetSprite(m_sprite_ship_blue);
 		m_object_ship1->SetSprite(m_sprite_ship_red);
@@ -233,6 +240,118 @@ void Application::CheckPlayerColour()
 
 void Application::UpdateObjectCollision()
 {
+	// Laser collision here. //
+	if (CheckBorderCollision(m_object_laser0, Vector2(0.0f, 0.0f), Vector2(RESOLUTION_X, RESOLUTION_Y)))
+	{
+		m_object_laser0->SetPosition(Vector2(-200.0f, -200.0f));
+		m_object_laser0->SetAcceleration(Vector2(0.0f, 0.0f));
+		m_object_laser0->SetVelocity(Vector2(0.0f, 0.0f));
+
+		isLaserUsing = false;
+	}
+	if (CheckObjectCollision(m_object_laser0, m_object_asteroid0))
+	{
+		m_object_laser0->SetPosition(Vector2(-200.0f, -200.0f));
+		m_object_laser0->SetAcceleration(Vector2(0.0f, 0.0f));
+		m_object_laser0->SetVelocity(Vector2(0.0f, 0.0f));
+
+		isLaserUsing = false;
+	}
+	if (CheckObjectCollision(m_object_laser0, m_object_asteroid1))
+	{
+		m_object_laser0->SetPosition(Vector2(-200.0f, -200.0f));
+		m_object_laser0->SetAcceleration(Vector2(0.0f, 0.0f));
+		m_object_laser0->SetVelocity(Vector2(0.0f, 0.0f));
+
+		isLaserUsing = false;
+	}
+	// . //
+
+	// Rocket collision here. //
+	if (CheckBorderCollision(m_object_rocket0, Vector2(0.0f, 0.0f), Vector2(RESOLUTION_X, RESOLUTION_Y)))
+	{
+		m_object_rocket0->SetPosition(Vector2(-200.0f, -200.0f));
+		m_object_rocket0->SetAcceleration(Vector2(0.0f, 0.0f));
+		m_object_rocket0->SetVelocity(Vector2(0.0f, 0.0f));
+
+		isRocketUsing = false;
+	}
+	if (CheckObjectCollision(m_object_rocket0, m_object_asteroid0))
+	{
+		m_object_rocket0->SetPosition(Vector2(-200.0f, -200.0f));
+		m_object_rocket0->SetAcceleration(Vector2(0.0f, 0.0f));
+		m_object_rocket0->SetVelocity(Vector2(0.0f, 0.0f));
+
+		isRocketUsing = false;
+	}
+	if (CheckObjectCollision(m_object_rocket0, m_object_asteroid1))
+	{
+		m_object_rocket0->SetPosition(Vector2(-200.0f, -200.0f));
+		m_object_rocket0->SetAcceleration(Vector2(0.0f, 0.0f));
+		m_object_rocket0->SetVelocity(Vector2(0.0f, 0.0f));
+
+		isRocketUsing = false;
+	}
+	// . //
+
+	// Local projectile collide with remote ship. //
+	if (CheckObjectCollision(m_object_laser0, m_object_ship1))
+	{
+		m_object_laser0->SetTransform(Vector2(-100.0f, -100.0f), Vector2(1.0f, 1.0f), 0.0f);
+		m_object_laser0->SetAcceleration(Vector2(0.0f, 0.0f));
+		m_object_laser0->SetVelocity(Vector2(0.0f, 0.0f));
+
+		if (healthShip1 > 0)
+		{
+			healthShip1 -= 1;
+		}
+
+		isLaserUsing = false;
+	}
+	if (CheckObjectCollision(m_object_rocket0, m_object_ship1))
+	{
+		m_object_rocket0->SetTransform(Vector2(-100.0f, -100.0f), Vector2(1.0f, 1.0f), 0.0f);
+		m_object_rocket0->SetAcceleration(Vector2(0.0f, 0.0f));
+		m_object_rocket0->SetVelocity(Vector2(0.0f, 0.0f));
+
+		if (healthShip1 > 0)
+		{
+			healthShip1 -= 1;
+		}
+
+		isRocketUsing = false;
+	}
+	// . //
+
+	// Local ship collision with remote projectile, activate immunity. //
+	if (!isImmune)
+	{
+		if (CheckObjectCollision(m_object_ship0, m_object_laser1))
+		{
+			isImmune = true;
+
+			if (healthShip0 > 0)
+			{
+				healthShip0 -= 1;
+			}
+
+			DamageBlink(m_object_ship0, hurtColor);
+		}
+		if (CheckObjectCollision(m_object_ship0, m_object_rocket1))
+		{
+			isImmune = true;
+
+			if (healthShip0 > 0)
+			{
+				healthShip0 -= 1;
+			}
+
+			DamageBlink(m_object_ship0, hurtColor);
+		}
+	}
+	// . //
+
+	// Local ship collision here. //
 	if (CheckBorderCollision(m_object_ship0, Vector2(0.0f, 0.0f), Vector2(RESOLUTION_X, RESOLUTION_Y)))
 	{
 		m_object_ship0->SetVelocity(m_object_ship0->GetVelocity() * -1.0f);
@@ -249,62 +368,7 @@ void Application::UpdateObjectCollision()
 	{
 		m_object_ship0->SetVelocity(m_object_ship0->GetVelocity() * -1.0f);
 	}
-
-	if (CheckObjectCollision(m_object_ship1, m_object_laser0))
-	{
-		m_object_laser0->SetTransform(Vector2(-100.0f, -100.0f), Vector2(1.0f, 1.0f), 0.0f);
-		m_object_laser0->SetAcceleration(Vector2(0.0f, 0.0f));
-		m_object_laser0->SetVelocity(Vector2(0.0f, 0.0f));
-
-		if (healthShip1 > 0)
-		{
-			healthShip1 -= 1;
-			Destroy(m_object_health1[healthShip1]);
-		}
-
-		isLaserUsing = false;
-	}
-	if (CheckObjectCollision(m_object_ship1, m_object_rocket0))
-	{
-		m_object_rocket0->SetTransform(Vector2(-100.0f, -100.0f), Vector2(1.0f, 1.0f), 0.0f);
-		m_object_rocket0->SetAcceleration(Vector2(0.0f, 0.0f));
-		m_object_rocket0->SetVelocity(Vector2(0.0f, 0.0f));
-
-		if (healthShip1 > 0)
-		{
-			healthShip1 -= 1;
-			Destroy(m_object_health1[healthShip1]);
-		}
-
-		isRocketUsing = false;
-	}
-
-	// local collide, activate immunity
-	if (!isImmune)
-	{
-		if (CheckObjectCollision(m_object_ship0, m_object_laser1))
-		{
-			isImmune = true;
-
-			if (healthShip0 > 0)
-			{
-				healthShip0 -= 1;
-				Destroy(m_object_health0[healthShip0]);
-			}
-
-			m_object_ship0->GetSprite().SetColor(Color(150.0f, 150.0f, 150.0f, 255.0f));
-		}
-		if (CheckObjectCollision(m_object_ship0, m_object_rocket1))
-		{
-			isImmune = true;
-
-			if (healthShip0 > 0)
-			{
-				healthShip0 -= 1;
-				Destroy(m_object_health0[healthShip0]);
-			}
-		}
-	}
+	// . //
 }
 
 float Application::CalculateShipRotation(Vector2 shipPos, Vector2 mousePos)
@@ -315,8 +379,9 @@ float Application::CalculateShipRotation(Vector2 shipPos, Vector2 mousePos)
 	return angle;
 }
 
-void Application::DamageBlink(GameObject * object)
+void Application::DamageBlink(GameObject* object, Color color)
 {
+	object->GetSprite().SetColor(color);
 }
 
 void Application::ShootLaser()
@@ -393,6 +458,63 @@ void Application::UpdateLocalRocket(float deltaTime)
 	}
 }
 
+void Application::UpdateLocalShip(float deltaTime)
+{
+	if (isImmune)
+	{
+		immuneDelayCounter += deltaTime;
+		if (immuneDelayCounter > immuneDelay)
+		{
+			immuneDelayCounter = 0.0f;
+			isImmune = false;
+
+			m_object_ship0->GetSprite().SetColor(normalColor);
+		}
+	}
+
+	m_object_ship0->SetRotation
+	(
+		CalculateShipRotation
+		(
+			m_object_ship0->GetPosition(), mousePosition
+		)
+	);
+
+	m_object_ship0->Update(deltaTime);
+	m_object_ship0->SetAcceleration(Vector2(0.0f, 0.0f));
+	LimitVelAndPos(m_object_ship0);
+}
+
+void Application::UpdateLocalShipHealth()
+{
+	if (playerNumber == 1)
+	{
+		// Remove them, then update them.
+		for (int i = 0; i < maxHealthShip0; ++i)
+		{
+			m_object_health0[i]->SetPosition(Vector2(-200.0f, -200.0f));
+		}
+
+		for (int i = 0; i < healthShip0; ++i)
+		{
+			m_object_health0[i]->SetPosition(Vector2(60.0f + (i * 60.0f), 540.0f));
+		}
+	}
+	else if (playerNumber == 2)
+	{
+		// Remove them, then update them.
+		for (int i = 0; i < maxHealthShip0; ++i)
+		{
+			m_object_health0[i]->SetPosition(Vector2(-200.0f, -200.0f));
+		}
+
+		for (int i = 0; i < healthShip0; ++i)
+		{
+			m_object_health0[i]->SetPosition(Vector2(740.0f + (i * -60.0f), 540.0f));
+		}
+	}
+}
+
 void Application::UpdateRemoteLaser(float deltaTime)
 {
 	m_object_laser1->Update(deltaTime);
@@ -419,35 +541,10 @@ void Application::UpdateRemoteRocket(float deltaTime)
 	m_object_rocket1->SetRotation(m_lastReceivedRot_rocket1);
 }
 
-void Application::UpdateLocalShip(float deltaTime)
-{
-	if (isImmune)
-	{
-		immuneDelayCounter += deltaTime;
-		if (immuneDelayCounter > immuneDelay)
-		{
-			immuneDelayCounter = 0.0f;
-			isImmune = false;
-
-			m_object_ship0->GetSprite().SetColor(Color(255.0f, 255.0f, 255.0f, 255.0f));
-		}
-	}
-
-	m_object_ship0->SetRotation
-	(
-		CalculateShipRotation
-		(
-			m_object_ship0->GetPosition(), mousePosition
-		)
-	);
-
-	m_object_ship0->Update(deltaTime);
-	m_object_ship0->SetAcceleration(Vector2(0.0f, 0.0f));
-	LimitVelAndPos(m_object_ship0);
-}
-
 void Application::UpdateRemoteShip(float deltaTime)
 {
+	DamageBlink(m_object_ship1, returnColor);
+
 	m_object_ship1->SetRotation
 	(
 		m_lastReceivedRot_ship1
@@ -466,7 +563,51 @@ void Application::UpdateRemoteShip(float deltaTime)
 
 void Application::UpdateRemoteShipHealth()
 {
+	if (playerNumber == 1)
+	{
+		// Remove them, then update them.
+		for (int i = 0; i < maxHealthShip1; ++i)
+		{
+			m_object_health1[i]->SetPosition(Vector2(-200.0f, -200.0f));
+		}
 
+		for (int i = 0; i < healthShip1; ++i)
+		{
+			m_object_health1[i]->SetPosition(Vector2(740.0f + (i * -60.0f), 540.0f));
+		}
+	}
+	else if (playerNumber == 2)
+	{
+		// Remove them, then update them.
+		for (int i = 0; i < maxHealthShip1; ++i)
+		{
+			m_object_health1[i]->SetPosition(Vector2(-200.0f, -200.0f));
+		}
+
+		for (int i = 0; i < healthShip1; ++i)
+		{
+			m_object_health1[i]->SetPosition(Vector2(60.0f + (i * 60.0f), 540.0f));
+		}
+	}
+}
+
+void Application::CheckWinLose()
+{
+	if (m_gameState == GameState::STATE_STARTGAME)
+	{
+		if (healthShip0 <= 0)
+		{
+			m_object_winLose->SetSprite(m_sprite_lose);
+			m_object_winLose->SetPosition(Vector2(400.0f, 300.0f));
+			m_gameState = GameState::STATE_GAMEOVER;
+		}
+		else if (healthShip1 <= 0)
+		{
+			m_object_winLose->SetSprite(m_sprite_win);
+			m_object_winLose->SetPosition(Vector2(400.0f, 300.0f));
+			m_gameState = GameState::STATE_GAMEOVER;
+		}
+	}
 }
 
 bool Application::CheckObjectCollision(GameObject* object0, GameObject* object1)
@@ -529,13 +670,15 @@ void Application::SendMyData(void)
 	float rot_ship0 = m_object_ship0->GetRotation();
 	float rot_laser0 = m_object_laser0->GetRotation();
 	float rot_rocket0 = m_object_rocket0->GetRotation();
+	Color hurt_color0 = m_object_ship0->GetSprite().GetColor();
 
 	MyPhoton::getInstance().sendMyData
 	(
 		pos_ship0, vel_ship0, acc_ship0,
 		pos_laser0, vel_laser0, acc_laser0,
 		pos_rocket0, vel_rocket0, acc_rocket0,
-		rot_ship0, rot_laser0, rot_rocket0
+		rot_ship0, rot_laser0, rot_rocket0,
+		hurt_color0
 	);
 }
 
@@ -543,7 +686,7 @@ void Application::SendMyData(void)
 // Ship position, ship rotation, laser position, laser rotation, ship health
 void Application::OnReceivedOpponentData(float* data)
 {
-	if (m_gameState == GameState::STATE_WAITGAME)
+	if (m_gameState != GameState::STATE_STARTGAME)
 	{
 		if (!doArrangePlayerPositionOnce)
 		{
@@ -567,7 +710,8 @@ void Application::OnReceivedOpponentData(float* data)
 	}
 
 	// ship : 0 ~ 5, laser0 : 6 ~ 11, rocket0 : 12 ~ 17,
-	// shipRot : 18, laserRot : 19, rocketRot : 20
+	// shipRot : 18, laserRot : 19, rocketRot : 20,
+	// returnColor.R : 21, G : 22, B : 23, A : 24
 
 	// remote ship data.
 	m_lastReceivedPos_ship1 = Vector2(data[0], data[1]);
@@ -585,11 +729,16 @@ void Application::OnReceivedOpponentData(float* data)
 	m_lastReceivedRot_ship1 = data[18];
 	m_lastReceivedRot_laser1 = data[19];
 	m_lastReceivedRot_rocket1 = data[20];
+
+	returnColor.R = data[21];
+	returnColor.G = data[22];
+	returnColor.B = data[23];
+	returnColor.A = data[24];
 }
 
 void Application::OnKeyPressed(int key)
 {
-	if (m_gameState == GameState::STATE_WAITGAME)
+	if (m_gameState != GameState::STATE_STARTGAME)
 	{
 		return;
 	}
@@ -597,7 +746,7 @@ void Application::OnKeyPressed(int key)
 
 void Application::OnKeyReleased(int key)
 {
-	if (m_gameState == GameState::STATE_WAITGAME)
+	if (m_gameState != GameState::STATE_STARTGAME)
 	{
 		return;
 	}
@@ -605,7 +754,7 @@ void Application::OnKeyReleased(int key)
 
 void Application::OnKeyHold(int key)
 {
-	if (m_gameState == GameState::STATE_WAITGAME)
+	if (m_gameState != GameState::STATE_STARTGAME)
 	{
 		return;
 	}
@@ -642,7 +791,7 @@ void Application::OnKeyHold(int key)
 
 void Application::OnMousePressed(int button)
 {
-	if (m_gameState == GameState::STATE_WAITGAME)
+	if (m_gameState != GameState::STATE_STARTGAME)
 	{
 		return;
 	}
@@ -661,7 +810,7 @@ void Application::OnMousePressed(int button)
 
 void Application::OnMouseReleased(int button)
 {
-	if (m_gameState == GameState::STATE_WAITGAME)
+	if (m_gameState != GameState::STATE_STARTGAME)
 	{
 		return;
 	}
@@ -669,7 +818,7 @@ void Application::OnMouseReleased(int button)
 
 void Application::OnMouseHold(int button)
 {
-	if (m_gameState == GameState::STATE_WAITGAME)
+	if (m_gameState != GameState::STATE_STARTGAME)
 	{
 		return;
 	}
@@ -686,7 +835,7 @@ void Application::OnMouseHold(int button)
 
 void Application::OnMouseMoved(double mousePosX, double mousePosY)
 {
-	if (m_gameState == GameState::STATE_WAITGAME)
+	if (m_gameState != GameState::STATE_STARTGAME)
 	{
 		return;
 	}
@@ -712,7 +861,7 @@ void Application::Update(double elapsedTime)
 {
 	MyPhoton::getInstance().run();
 
-	if (m_gameState == GameState::STATE_WAITGAME)
+	if (m_gameState != GameState::STATE_STARTGAME)
 	{
 		return;
 	}
@@ -724,10 +873,13 @@ void Application::Update(double elapsedTime)
 	UpdateLocalShip(elapsedTime);
 	UpdateLocalLaser(elapsedTime);
 	UpdateLocalRocket(elapsedTime);
+	UpdateLocalShipHealth();
 	UpdateRemoteShip(elapsedTime);
 	UpdateRemoteLaser(elapsedTime);
 	UpdateRemoteRocket(elapsedTime);
 	UpdateRemoteShipHealth();
+	
+	CheckWinLose();
 }
 
 void Application::Draw()

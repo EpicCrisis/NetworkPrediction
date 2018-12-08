@@ -28,12 +28,20 @@ protected:
 	Vector2 rocketSize = Vector2(20.0f, 80.0f);
 	Vector2 asteroidSize = Vector2(100.0f, 100.0f);
 	Vector2 healthSize = Vector2(50.0f, 50.0f);
+	Vector2 winSize = Vector2(487.0f, 80.0f);
+	Vector2 loseSize = Vector2(512.0f, 80.0f);
 
 	Vector2 shipHalfSize = shipSize * 0.5f;
 	Vector2 laserHalfSize = laserSize * 0.5f;
 	Vector2 rocketHalfSize = rocketSize * 0.5f;
 	Vector2 asteroidHalfSize = asteroidSize * 0.5f;
 	Vector2 healthHalfSize = healthSize * 0.5f;
+	Vector2 winHalfSize = winSize * 0.5f;
+	Vector2 loseHalfSize = loseSize * 0.5f;
+
+	Color hurtColor = Color(150.0f, 150.0f, 150.0f, 255.0f);
+	Color normalColor = Color(255.0f, 255.0f, 255.0f, 255.0f);
+	Color returnColor;
 
 	Sprite m_sprite_ship_red;
 	Sprite m_sprite_laser_red;
@@ -44,6 +52,8 @@ protected:
 	Sprite m_sprite_rocket_blue;
 	Sprite m_sprite_health_blue;
 	Sprite m_sprite_asteroid;
+	Sprite m_sprite_win;
+	Sprite m_sprite_lose;
 
 	GameObject* m_object_ship0;
 	GameObject* m_object_ship1;
@@ -55,6 +65,7 @@ protected:
 	GameObject* m_object_rocket1;
 	GameObject* m_object_health0[3];
 	GameObject* m_object_health1[3];
+	GameObject* m_object_winLose;
 
 	GameState m_gameState;
 
@@ -64,6 +75,8 @@ protected:
 	float maxShipSpeed = 200.0f;
 
 	// Ship health.
+	int maxHealthShip0 = 3;
+	int maxHealthShip1 = 3;
 	int healthShip0 = 3;
 	int healthShip1 = 3;
 
@@ -128,19 +141,24 @@ public:
 	void CheckPlayerColour();
 	void UpdateObjectCollision();
 	float CalculateShipRotation(Vector2 shipPos, Vector2 mousePos);
-	void DamageBlink(GameObject* object); // Get the object and make it white, based on immune delay.
+	void DamageBlink(GameObject* object, Color color); // Get the object and make it white, based on immune delay.
 
 	// Separate shoot mechanic into two, one to detect if the projectile is being used,
 	// and one to detect if the ship is loading projectile, both must be false to shoot.
 	void ShootLaser();
 	void ShootRocket();
-	void UpdateLocalLaser(float deltaTime);
-	void UpdateRemoteLaser(float deltaTime);
-	void UpdateLocalRocket(float deltaTime);
-	void UpdateRemoteRocket(float deltaTime);
+
 	void UpdateLocalShip(float deltaTime);
+	void UpdateLocalLaser(float deltaTime);
+	void UpdateLocalRocket(float deltaTime);
+	void UpdateLocalShipHealth();
+
 	void UpdateRemoteShip(float deltaTime);
+	void UpdateRemoteLaser(float deltaTime);
+	void UpdateRemoteRocket(float deltaTime);
 	void UpdateRemoteShipHealth();
+
+	void CheckWinLose();
 
 	bool CheckObjectCollision(GameObject* object0, GameObject* object1);
 	bool CheckBorderCollision(GameObject* object, Vector2 minBorder, Vector2 maxBorder);
