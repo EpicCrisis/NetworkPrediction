@@ -83,12 +83,15 @@ protected:
 	// Laser fire rate.
 	float laserfireRate = 1.0f;
 	float laserfireRateCounter = 0.0f;
+	float laserSpeed = 200.0f;
 	bool isLaserUsing = false;
 	bool isLaserLoading = false;
 
 	// Rocket fire rate.
 	float rocketfireRate = 3.0f;
 	float rocketfireRateCounter = 0.0f;
+	float rocketAccel = 100.0f;
+	float rocketSpeed = 100.0f;
 	bool isRocketUsing = false;
 	bool isRocketLoading = false;
 
@@ -97,8 +100,16 @@ protected:
 	float immuneDelayCounter = 0.0f;
 	bool isImmune = false;
 
+	// Send the data if fired or not.
+	int sendLaser = 0;
+	int sendRocket = 0;
+	int returnLaser = 0;
+	int returnRocket = 0;
+
 	int playerNumber;
 	Vector2 mousePosition;
+	Vector2 mouseTargetLaser;
+	Vector2 shootFromShipLocation;
 
 	// Used to calculate local interpolation.
 	Vector2 m_lastReceivedPos_ship1;
@@ -110,7 +121,7 @@ protected:
 	float m_lastReceivedRot_rocket1;
 
 	void NetworkUpdate();
-	void LimitVelAndPos(GameObject* go);
+	void LimitVelAndPos(GameObject* go, float limit);
 
 public:
 	Application();
@@ -140,7 +151,7 @@ public:
 	void SetPlayerNumber(int playerN);
 	void CheckPlayerColour();
 	void UpdateObjectCollision();
-	float CalculateShipRotation(Vector2 shipPos, Vector2 mousePos);
+	float CalculatePointRotation(Vector2 objectPos, Vector2 mousePos);
 	void DamageBlink(GameObject* object, Color color); // Get the object and make it white, based on immune delay.
 
 	// Separate shoot mechanic into two, one to detect if the projectile is being used,

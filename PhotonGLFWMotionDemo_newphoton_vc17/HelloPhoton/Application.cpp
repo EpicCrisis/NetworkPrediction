@@ -80,13 +80,13 @@ void Application::NetworkUpdate()
 	}
 }
 
-void Application::LimitVelAndPos(GameObject* go)
+void Application::LimitVelAndPos(GameObject* go, float limit)
 {
 	if (go->GetVelocity().Length() > maxShipSpeed)
 	{
 		Vector2 vec = go->GetVelocity();
 		vec.Normalize();
-		vec *= maxShipSpeed;
+		vec *= limit;
 		go->SetVelocity(vec);
 	}
 }
@@ -294,34 +294,19 @@ void Application::UpdateObjectCollision()
 	}
 	// . //
 
-	// Local projectile collide with remote ship. //
-	if (CheckObjectCollision(m_object_laser0, m_object_ship1))
-	{
-		m_object_laser0->SetTransform(Vector2(-100.0f, -100.0f), Vector2(1.0f, 1.0f), 0.0f);
-		m_object_laser0->SetAcceleration(Vector2(0.0f, 0.0f));
-		m_object_laser0->SetVelocity(Vector2(0.0f, 0.0f));
-
-		if (healthShip1 > 0)
-		{
-			healthShip1 -= 1;
-		}
-
-		isLaserUsing = false;
-	}
-	if (CheckObjectCollision(m_object_rocket0, m_object_ship1))
-	{
-		m_object_rocket0->SetTransform(Vector2(-100.0f, -100.0f), Vector2(1.0f, 1.0f), 0.0f);
-		m_object_rocket0->SetAcceleration(Vector2(0.0f, 0.0f));
-		m_object_rocket0->SetVelocity(Vector2(0.0f, 0.0f));
-
-		if (healthShip1 > 0)
-		{
-			healthShip1 -= 1;
-		}
-
-		isRocketUsing = false;
-	}
-	// . //
+	// Remote ship collision with local projectile, update local projectile. //
+	//if (CheckObjectCollision(m_object_ship1, m_object_laser0))
+	//{
+	//	m_object_laser0->SetPosition(Vector2(-200.0f, -200.0f));
+	//	m_object_laser0->SetVelocity(Vector2(0.0f, 0.0f));
+	//	m_object_laser0->SetAcceleration(Vector2(0.0f, 0.0f));
+	//}
+	//if (CheckObjectCollision(m_object_ship1, m_object_rocket0))
+	//{
+	//	m_object_rocket0->SetPosition(Vector2(-200.0f, -200.0f));
+	//	m_object_rocket0->SetVelocity(Vector2(0.0f, 0.0f));
+	//	m_object_rocket0->SetAcceleration(Vector2(0.0f, 0.0f));
+	//}
 
 	// Local ship collision with remote projectile, activate immunity. //
 	if (!isImmune)
@@ -334,7 +319,10 @@ void Application::UpdateObjectCollision()
 			{
 				healthShip0 -= 1;
 			}
-
+			m_object_laser1->SetPosition(Vector2(-200.0f, -200.0f));
+			m_object_laser1->SetVelocity(Vector2(0.0f, 0.0f));
+			m_object_laser1->SetAcceleration(Vector2(0.0f, 0.0f));
+			
 			DamageBlink(m_object_ship0, hurtColor);
 		}
 		if (CheckObjectCollision(m_object_ship0, m_object_rocket1))
@@ -345,6 +333,9 @@ void Application::UpdateObjectCollision()
 			{
 				healthShip0 -= 1;
 			}
+			m_object_rocket1->SetPosition(Vector2(-200.0f, -200.0f));
+			m_object_rocket1->SetVelocity(Vector2(0.0f, 0.0f));
+			m_object_rocket1->SetAcceleration(Vector2(0.0f, 0.0f));
 
 			DamageBlink(m_object_ship0, hurtColor);
 		}
@@ -371,9 +362,9 @@ void Application::UpdateObjectCollision()
 	// . //
 }
 
-float Application::CalculateShipRotation(Vector2 shipPos, Vector2 mousePos)
+float Application::CalculatePointRotation(Vector2 object, Vector2 mousePos)
 {
-	Vector2 dir = Vector2(mousePos - shipPos);
+	Vector2 dir = Vector2(mousePos - object);
 	dir.Normalize();
 	float angle = (atan2(dir.x, dir.y) * 180.0f) / 3.142f;
 	return angle;
@@ -403,6 +394,11 @@ void Application::ShootLaser()
 
 		isLaserUsing = true;
 		isLaserLoading = true;
+
+		mouseTargetLaser = mousePosition;
+		shootFromShipLocation = m_object_ship0->GetPosition();
+
+		sendLaser = 1;
 	}
 }
 
@@ -423,12 +419,17 @@ void Application::ShootRocket()
 
 		isRocketUsing = true;
 		isRocketLoading = true;
+
+		sendRocket = 1;
 	}
 }
 
 void Application::UpdateLocalLaser(float deltaTime)
 {
-	m_object_laser0->Update(deltaTime);
+	Vector2 direction = mouseTargetLaser - shootFromShipLocation;
+	direction.Normalize();
+	direction *= laserSpeed;
+	m_object_laser0->SetVelocity(direction);
 
 	// Local laser fire rate.
 	if (isLaserLoading)
@@ -440,11 +441,36 @@ void Application::UpdateLocalLaser(float deltaTime)
 			isLaserLoading = false;
 		}
 	}
+
+	m_object_laser0->Update(deltaTime);
 }
 
 void Application::UpdateLocalRocket(float deltaTime)
 {
-	m_object_laser1->Update(deltaTime);
+	if (m_object_rocket0->GetPosition().x > m_object_ship1->GetPosition().x)
+	{
+		m_object_rocket0->SetAcceleration(Vector2(-rocketAccel, m_object_rocket0->GetAcceleration().y));
+	}
+	else if (m_object_laser0->GetPosition().x < m_object_ship1->GetPosition().x)
+	{
+		m_object_rocket0->SetAcceleration(Vector2(rocketAccel, m_object_rocket0->GetAcceleration().y));
+	}
+	if (m_object_rocket0->GetPosition().y > m_object_ship1->GetPosition().y)
+	{
+		m_object_rocket0->SetAcceleration(Vector2(m_object_rocket0->GetAcceleration().x, -rocketAccel));
+	}
+	else if (m_object_rocket0->GetPosition().y < m_object_ship1->GetPosition().y)
+	{
+		m_object_rocket0->SetAcceleration(Vector2(m_object_rocket0->GetAcceleration().y, rocketAccel));
+	}
+
+	m_object_rocket0->SetRotation
+	(
+		CalculatePointRotation
+		(
+			m_object_rocket0->GetPosition(), m_object_ship1->GetPosition()
+		)
+	);
 
 	// Local rocket fire rate.
 	if (isRocketLoading)
@@ -456,6 +482,9 @@ void Application::UpdateLocalRocket(float deltaTime)
 			isRocketLoading = false;
 		}
 	}
+
+	m_object_rocket0->Update(deltaTime);
+	LimitVelAndPos(m_object_rocket0, rocketSpeed);
 }
 
 void Application::UpdateLocalShip(float deltaTime)
@@ -474,7 +503,7 @@ void Application::UpdateLocalShip(float deltaTime)
 
 	m_object_ship0->SetRotation
 	(
-		CalculateShipRotation
+		CalculatePointRotation
 		(
 			m_object_ship0->GetPosition(), mousePosition
 		)
@@ -482,7 +511,7 @@ void Application::UpdateLocalShip(float deltaTime)
 
 	m_object_ship0->Update(deltaTime);
 	m_object_ship0->SetAcceleration(Vector2(0.0f, 0.0f));
-	LimitVelAndPos(m_object_ship0);
+	LimitVelAndPos(m_object_ship0, maxShipSpeed);
 }
 
 void Application::UpdateLocalShipHealth()
@@ -517,34 +546,30 @@ void Application::UpdateLocalShipHealth()
 
 void Application::UpdateRemoteLaser(float deltaTime)
 {
-	m_object_laser1->Update(deltaTime);
-
 	// Remote laser.
 	m_object_laser1->SetPosition
 	(
 		m_object_laser1->GetPosition() * 0.995f + m_lastReceivedPos_laser1 * 0.005f
 	);
 
+	m_object_laser1->Update(deltaTime);
 	m_object_laser1->SetRotation(m_lastReceivedRot_laser1);
 }
 
 void Application::UpdateRemoteRocket(float deltaTime)
 {
-	m_object_rocket1->Update(deltaTime);
-
 	// Remote rocket.
 	m_object_rocket1->SetPosition
 	(
 		m_object_rocket1->GetPosition() * 0.995f + m_lastReceivedPos_rocket1 * 0.005f
 	);
 
+	m_object_rocket1->Update(deltaTime);
 	m_object_rocket1->SetRotation(m_lastReceivedRot_rocket1);
 }
 
 void Application::UpdateRemoteShip(float deltaTime)
 {
-	DamageBlink(m_object_ship1, returnColor);
-
 	m_object_ship1->SetRotation
 	(
 		m_lastReceivedRot_ship1
@@ -558,7 +583,8 @@ void Application::UpdateRemoteShip(float deltaTime)
 	(
 		m_object_ship1->GetPosition() * 0.995f + m_lastReceivedPos_ship1 * 0.005f
 	);
-	LimitVelAndPos(m_object_ship1);
+	LimitVelAndPos(m_object_ship1, maxShipSpeed);
+	DamageBlink(m_object_ship1, returnColor);
 }
 
 void Application::UpdateRemoteShipHealth()
@@ -671,6 +697,9 @@ void Application::SendMyData(void)
 	float rot_laser0 = m_object_laser0->GetRotation();
 	float rot_rocket0 = m_object_rocket0->GetRotation();
 	Color hurt_color0 = m_object_ship0->GetSprite().GetColor();
+	int hp_ship0 = healthShip0;
+	int send_laser = sendLaser;
+	int send_rocket = sendRocket;
 
 	MyPhoton::getInstance().sendMyData
 	(
@@ -678,7 +707,8 @@ void Application::SendMyData(void)
 		pos_laser0, vel_laser0, acc_laser0,
 		pos_rocket0, vel_rocket0, acc_rocket0,
 		rot_ship0, rot_laser0, rot_rocket0,
-		hurt_color0
+		hurt_color0, hp_ship0,
+		send_laser, send_rocket
 	);
 }
 
@@ -711,7 +741,7 @@ void Application::OnReceivedOpponentData(float* data)
 
 	// ship : 0 ~ 5, laser0 : 6 ~ 11, rocket0 : 12 ~ 17,
 	// shipRot : 18, laserRot : 19, rocketRot : 20,
-	// returnColor.R : 21, G : 22, B : 23, A : 24
+	// returnColor.R : 21, G : 22, B : 23, A : 24, shipHealth : 25
 
 	// remote ship data.
 	m_lastReceivedPos_ship1 = Vector2(data[0], data[1]);
@@ -734,6 +764,11 @@ void Application::OnReceivedOpponentData(float* data)
 	returnColor.G = data[22];
 	returnColor.B = data[23];
 	returnColor.A = data[24];
+
+	healthShip1 = data[25];
+
+	returnLaser = data[26];
+	returnRocket = data[27];
 }
 
 void Application::OnKeyPressed(int key)
