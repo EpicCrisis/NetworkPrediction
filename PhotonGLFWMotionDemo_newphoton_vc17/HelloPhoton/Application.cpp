@@ -505,7 +505,7 @@ void Application::UpdateLocalShip(float deltaTime)
 
 	LimitVelAndPos(m_object_ship0, maxShipSpeed);
 
-	DamageBlink(m_object_ship1, returnColor);
+	DamageBlink(m_object_ship0, returnColor);
 }
 
 void Application::UpdateLocalShipHealth(float deltaTime)
@@ -767,6 +767,7 @@ void Application::OnReceivedOpponentData(float* data)
 	m_lastReceivedRot_laser1 = data[19];
 	m_lastReceivedRot_rocket1 = data[20];
 
+	// Set to local ship.
 	returnColor.R = data[21];
 	returnColor.G = data[22];
 	returnColor.B = data[23];
