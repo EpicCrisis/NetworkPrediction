@@ -162,12 +162,12 @@ public:
 	void UpdateLocalShip(float deltaTime);
 	void UpdateLocalLaser(float deltaTime);
 	void UpdateLocalRocket(float deltaTime);
-	void UpdateLocalShipHealth();
+	void UpdateLocalShipHealth(float deltaTime);
 
 	void UpdateRemoteShip(float deltaTime);
 	void UpdateRemoteLaser(float deltaTime);
 	void UpdateRemoteRocket(float deltaTime);
-	void UpdateRemoteShipHealth();
+	void UpdateRemoteShipHealth(float deltaTime);
 
 	void CheckWinLose();
 

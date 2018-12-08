@@ -295,49 +295,34 @@ void Application::UpdateObjectCollision()
 	// . //
 
 	// Remote ship collision with local projectile, update local projectile. //
-	//if (CheckObjectCollision(m_object_ship1, m_object_laser0))
-	//{
-	//	m_object_laser0->SetPosition(Vector2(-200.0f, -200.0f));
-	//	m_object_laser0->SetVelocity(Vector2(0.0f, 0.0f));
-	//	m_object_laser0->SetAcceleration(Vector2(0.0f, 0.0f));
-	//}
-	//if (CheckObjectCollision(m_object_ship1, m_object_rocket0))
-	//{
-	//	m_object_rocket0->SetPosition(Vector2(-200.0f, -200.0f));
-	//	m_object_rocket0->SetVelocity(Vector2(0.0f, 0.0f));
-	//	m_object_rocket0->SetAcceleration(Vector2(0.0f, 0.0f));
-	//}
-
-	// Local ship collision with remote projectile, activate immunity. //
-	if (!isImmune)
+	if (CheckObjectCollision(m_object_ship1, m_object_laser0))
 	{
-		if (CheckObjectCollision(m_object_ship0, m_object_laser1))
+		isLaserUsing = false;
+
+		if (!isImmune)
 		{
 			isImmune = true;
+			m_object_ship1->GetSprite().SetColor(hurtColor);
 
-			if (healthShip0 > 0)
+			if (healthShip1 > 0)
 			{
-				healthShip0 -= 1;
+				healthShip1 -= 1;
 			}
-			m_object_laser1->SetPosition(Vector2(-200.0f, -200.0f));
-			m_object_laser1->SetVelocity(Vector2(0.0f, 0.0f));
-			m_object_laser1->SetAcceleration(Vector2(0.0f, 0.0f));
-			
-			DamageBlink(m_object_ship0, hurtColor);
 		}
-		if (CheckObjectCollision(m_object_ship0, m_object_rocket1))
+	}
+	if (CheckObjectCollision(m_object_ship1, m_object_rocket0))
+	{
+		isRocketUsing = false;
+
+		if (!isImmune)
 		{
 			isImmune = true;
+			m_object_ship1->GetSprite().SetColor(hurtColor);
 
-			if (healthShip0 > 0)
+			if (healthShip1 > 0)
 			{
-				healthShip0 -= 1;
+				healthShip1 -= 1;
 			}
-			m_object_rocket1->SetPosition(Vector2(-200.0f, -200.0f));
-			m_object_rocket1->SetVelocity(Vector2(0.0f, 0.0f));
-			m_object_rocket1->SetAcceleration(Vector2(0.0f, 0.0f));
-
-			DamageBlink(m_object_ship0, hurtColor);
 		}
 	}
 	// . //
@@ -426,10 +411,21 @@ void Application::ShootRocket()
 
 void Application::UpdateLocalLaser(float deltaTime)
 {
-	Vector2 direction = mouseTargetLaser - shootFromShipLocation;
-	direction.Normalize();
-	direction *= laserSpeed;
-	m_object_laser0->SetVelocity(direction);
+	if (isLaserUsing)
+	{
+		Vector2 direction = mouseTargetLaser - shootFromShipLocation;
+		direction.Normalize();
+		direction *= laserSpeed;
+		m_object_laser0->SetVelocity(direction);
+
+		m_object_laser0->Update(deltaTime);
+	}
+	else
+	{
+		m_object_laser0->SetPosition(Vector2(-200.0f, -200.0f));
+		m_object_laser0->SetVelocity(Vector2(0.0f, 0.0f));
+		m_object_laser0->SetAcceleration(Vector2(0.0f, 0.0f));
+	}
 
 	// Local laser fire rate.
 	if (isLaserLoading)
@@ -441,36 +437,46 @@ void Application::UpdateLocalLaser(float deltaTime)
 			isLaserLoading = false;
 		}
 	}
-
-	m_object_laser0->Update(deltaTime);
 }
 
 void Application::UpdateLocalRocket(float deltaTime)
 {
-	if (m_object_rocket0->GetPosition().x > m_object_ship1->GetPosition().x)
+	if (isRocketUsing)
 	{
-		m_object_rocket0->SetAcceleration(Vector2(-rocketAccel, m_object_rocket0->GetAcceleration().y));
-	}
-	else if (m_object_laser0->GetPosition().x < m_object_ship1->GetPosition().x)
-	{
-		m_object_rocket0->SetAcceleration(Vector2(rocketAccel, m_object_rocket0->GetAcceleration().y));
-	}
-	if (m_object_rocket0->GetPosition().y > m_object_ship1->GetPosition().y)
-	{
-		m_object_rocket0->SetAcceleration(Vector2(m_object_rocket0->GetAcceleration().x, -rocketAccel));
-	}
-	else if (m_object_rocket0->GetPosition().y < m_object_ship1->GetPosition().y)
-	{
-		m_object_rocket0->SetAcceleration(Vector2(m_object_rocket0->GetAcceleration().y, rocketAccel));
-	}
+		if (m_object_rocket0->GetPosition().x > m_object_ship1->GetPosition().x)
+		{
+			m_object_rocket0->SetAcceleration(Vector2(-rocketAccel, m_object_rocket0->GetAcceleration().y));
+		}
+		else if (m_object_laser0->GetPosition().x < m_object_ship1->GetPosition().x)
+		{
+			m_object_rocket0->SetAcceleration(Vector2(rocketAccel, m_object_rocket0->GetAcceleration().y));
+		}
+		if (m_object_rocket0->GetPosition().y > m_object_ship1->GetPosition().y)
+		{
+			m_object_rocket0->SetAcceleration(Vector2(m_object_rocket0->GetAcceleration().x, -rocketAccel));
+		}
+		else if (m_object_rocket0->GetPosition().y < m_object_ship1->GetPosition().y)
+		{
+			m_object_rocket0->SetAcceleration(Vector2(m_object_rocket0->GetAcceleration().y, rocketAccel));
+		}
 
-	m_object_rocket0->SetRotation
-	(
-		CalculatePointRotation
+		m_object_rocket0->SetRotation
 		(
-			m_object_rocket0->GetPosition(), m_object_ship1->GetPosition()
-		)
-	);
+			CalculatePointRotation
+			(
+				m_object_rocket0->GetPosition(), m_object_ship1->GetPosition()
+			)
+		);
+
+		LimitVelAndPos(m_object_rocket0, rocketSpeed);
+		m_object_rocket0->Update(deltaTime);
+	}
+	else
+	{
+		m_object_rocket0->SetPosition(Vector2(-200.0f, -200.0f));
+		m_object_rocket0->SetVelocity(Vector2(0.0f, 0.0f));
+		m_object_rocket0->SetAcceleration(Vector2(0.0f, 0.0f));
+	}
 
 	// Local rocket fire rate.
 	if (isRocketLoading)
@@ -482,25 +488,10 @@ void Application::UpdateLocalRocket(float deltaTime)
 			isRocketLoading = false;
 		}
 	}
-
-	m_object_rocket0->Update(deltaTime);
-	LimitVelAndPos(m_object_rocket0, rocketSpeed);
 }
 
 void Application::UpdateLocalShip(float deltaTime)
 {
-	if (isImmune)
-	{
-		immuneDelayCounter += deltaTime;
-		if (immuneDelayCounter > immuneDelay)
-		{
-			immuneDelayCounter = 0.0f;
-			isImmune = false;
-
-			m_object_ship0->GetSprite().SetColor(normalColor);
-		}
-	}
-
 	m_object_ship0->SetRotation
 	(
 		CalculatePointRotation
@@ -511,10 +502,13 @@ void Application::UpdateLocalShip(float deltaTime)
 
 	m_object_ship0->Update(deltaTime);
 	m_object_ship0->SetAcceleration(Vector2(0.0f, 0.0f));
+
 	LimitVelAndPos(m_object_ship0, maxShipSpeed);
+
+	DamageBlink(m_object_ship1, returnColor);
 }
 
-void Application::UpdateLocalShipHealth()
+void Application::UpdateLocalShipHealth(float deltaTime)
 {
 	if (playerNumber == 1)
 	{
@@ -570,6 +564,20 @@ void Application::UpdateRemoteRocket(float deltaTime)
 
 void Application::UpdateRemoteShip(float deltaTime)
 {
+	if (isImmune)
+	{
+		if (immuneDelayCounter < immuneDelay)
+		{
+			immuneDelayCounter += deltaTime;
+		}
+		else
+		{
+			DamageBlink(m_object_ship1, normalColor);
+			immuneDelayCounter = 0.0f;
+			isImmune = false;
+		}
+	}
+
 	m_object_ship1->SetRotation
 	(
 		m_lastReceivedRot_ship1
@@ -584,10 +592,9 @@ void Application::UpdateRemoteShip(float deltaTime)
 		m_object_ship1->GetPosition() * 0.995f + m_lastReceivedPos_ship1 * 0.005f
 	);
 	LimitVelAndPos(m_object_ship1, maxShipSpeed);
-	DamageBlink(m_object_ship1, returnColor);
 }
 
-void Application::UpdateRemoteShipHealth()
+void Application::UpdateRemoteShipHealth(float deltaTime)
 {
 	if (playerNumber == 1)
 	{
@@ -696,8 +703,8 @@ void Application::SendMyData(void)
 	float rot_ship0 = m_object_ship0->GetRotation();
 	float rot_laser0 = m_object_laser0->GetRotation();
 	float rot_rocket0 = m_object_rocket0->GetRotation();
-	Color hurt_color0 = m_object_ship0->GetSprite().GetColor();
-	int hp_ship0 = healthShip0;
+	Color hurt_color1 = m_object_ship1->GetSprite().GetColor();
+	int hp_ship1 = healthShip1;
 	int send_laser = sendLaser;
 	int send_rocket = sendRocket;
 
@@ -707,7 +714,7 @@ void Application::SendMyData(void)
 		pos_laser0, vel_laser0, acc_laser0,
 		pos_rocket0, vel_rocket0, acc_rocket0,
 		rot_ship0, rot_laser0, rot_rocket0,
-		hurt_color0, hp_ship0,
+		hurt_color1, hp_ship1,
 		send_laser, send_rocket
 	);
 }
@@ -765,7 +772,7 @@ void Application::OnReceivedOpponentData(float* data)
 	returnColor.B = data[23];
 	returnColor.A = data[24];
 
-	healthShip1 = data[25];
+	healthShip0 = data[25];
 
 	returnLaser = data[26];
 	returnRocket = data[27];
@@ -908,11 +915,11 @@ void Application::Update(double elapsedTime)
 	UpdateLocalShip(elapsedTime);
 	UpdateLocalLaser(elapsedTime);
 	UpdateLocalRocket(elapsedTime);
-	UpdateLocalShipHealth();
+	UpdateLocalShipHealth(elapsedTime);
 	UpdateRemoteShip(elapsedTime);
 	UpdateRemoteLaser(elapsedTime);
 	UpdateRemoteRocket(elapsedTime);
-	UpdateRemoteShipHealth();
+	UpdateRemoteShipHealth(elapsedTime);
 	
 	CheckWinLose();
 }
