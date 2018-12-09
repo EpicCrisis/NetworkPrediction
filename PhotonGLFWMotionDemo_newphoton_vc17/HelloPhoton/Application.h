@@ -83,7 +83,7 @@ protected:
 	// Laser fire rate.
 	float laserfireRate = 1.0f;
 	float laserfireRateCounter = 0.0f;
-	float laserSpeed = 200.0f;
+	float laserSpeed = 500.0f;
 	bool isLaserUsing = false;
 	bool isLaserLoading = false;
 
@@ -119,6 +119,13 @@ protected:
 	float m_lastReceivedRot_ship1;
 	float m_lastReceivedRot_laser1;
 	float m_lastReceivedRot_rocket1;
+
+	// Use this to fix latency issues.
+	float alignLaserDelay = 1.0f;
+	float alignLaserDelayCounter = 0.0f;
+
+	float alignRocketDelay = 1.0f;
+	float alignRocketDelayCounter = 0.0f;
 
 	void NetworkUpdate();
 	void LimitVelAndPos(GameObject* go, float limit);
