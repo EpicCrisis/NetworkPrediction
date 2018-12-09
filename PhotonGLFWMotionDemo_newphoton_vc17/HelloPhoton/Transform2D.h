@@ -12,10 +12,9 @@ public:
 	Vector2 position;
 	Vector2 scale;
 	Vector2 halfSize;
-	float rotation;
-private:
 	Vector2 boundStart;
 	Vector2 boundEnd;
+	float rotation;
 };
 
 

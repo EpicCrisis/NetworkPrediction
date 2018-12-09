@@ -29,7 +29,10 @@ public:
 	void SetScale(Vector2 scale);
 
 	float GetRotation() { return m_transform.rotation; };
-	void SetRotation(float rotation);
+	void GameObject::SetRotation(float rotation);
+
+	Vector2 RotateStartBound(float rotation, Vector2 halfSize, Vector2 startBound);
+	Vector2 RotateEndBound(float rotation, Vector2 halfSize, Vector2 endBound);
 
 	// Must divide by half because position starts in the center.
 	Vector2 GetHalfSize() { return m_transform.halfSize; };
@@ -37,7 +40,10 @@ public:
 
 	// Get the bottom left corner and top right corner.
 	Vector2 GetBoundStart();
+	void SetBoundStart(Vector2 startBound);
+
 	Vector2 GetBoundEnd();
+	void SetBoundEnd(Vector2 endBound);
 
 	Vector2 GetAcceleration() { return m_transform.acceleration; };
 	void SetAcceleration(Vector2 acceleration);

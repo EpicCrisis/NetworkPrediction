@@ -357,19 +357,91 @@ void Application::UpdateObjectCollision()
 	// Local ship collision here. //
 	if (CheckBorderCollision(m_object_ship0, Vector2(0.0f, 0.0f), Vector2(RESOLUTION_X, RESOLUTION_Y)))
 	{
-		m_object_ship0->SetVelocity(m_object_ship0->GetVelocity() * -1.0f);
+		if (m_object_ship0->GetBoundStart().x < 0.0f)
+		{
+			m_object_ship0->SetPosition
+			(
+				Vector2(0.0f + m_object_ship0->GetHalfSize().x, m_object_ship0->GetPosition().y)
+			);
+			m_object_ship0->SetAcceleration
+			(
+				Vector2(0.0f, m_object_ship0->GetAcceleration().y)
+			);
+			m_object_ship0->SetVelocity
+			(
+				Vector2(0.0f, m_object_ship0->GetVelocity().y)
+			);
+		}
+		else if (m_object_ship0->GetBoundEnd().x > RESOLUTION_X)
+		{
+			m_object_ship0->SetPosition
+			(
+				Vector2(RESOLUTION_X - m_object_ship0->GetHalfSize().x, m_object_ship0->GetPosition().y)
+			);
+			m_object_ship0->SetAcceleration
+			(
+				Vector2(0.0f, m_object_ship0->GetAcceleration().y)
+			);
+			m_object_ship0->SetVelocity
+			(
+				Vector2(0.0f, m_object_ship0->GetVelocity().y)
+			);
+		}
+
+		if (m_object_ship0->GetBoundStart().y < 0.0f)
+		{
+			m_object_ship0->SetPosition
+			(
+				Vector2(m_object_ship0->GetPosition().x, 0.0f + m_object_ship0->GetHalfSize().y)
+			);
+			m_object_ship0->SetAcceleration
+			(
+				Vector2(m_object_ship0->GetAcceleration().x, 0.0f)
+			);
+			m_object_ship0->SetVelocity
+			(
+				Vector2(m_object_ship0->GetVelocity().x, 0.0f)
+			);
+		}
+		else if (m_object_ship0->GetBoundEnd().y > RESOLUTION_Y)
+		{
+			m_object_ship0->SetPosition
+			(
+				Vector2(m_object_ship0->GetPosition().x, RESOLUTION_Y - m_object_ship0->GetHalfSize().y)
+			);
+			m_object_ship0->SetAcceleration
+			(
+				Vector2(m_object_ship0->GetAcceleration().x, 0.0f)
+			);
+			m_object_ship0->SetVelocity
+			(
+				Vector2(m_object_ship0->GetVelocity().x, 0.0f)
+			);
+		}
 	}
 	if (CheckObjectCollision(m_object_ship0, m_object_asteroid0))
 	{
-		m_object_ship0->SetVelocity(m_object_ship0->GetVelocity() * -1.0f);
+		Vector2 direction = m_object_ship0->GetPosition() - m_object_asteroid0->GetPosition();
+		direction.Normalize();
+		direction *= 100.0f;
+		m_object_ship0->SetVelocity(direction);
+		m_object_ship0->SetAcceleration(direction);
 	}
 	if (CheckObjectCollision(m_object_ship0, m_object_asteroid1))
 	{
-		m_object_ship0->SetVelocity(m_object_ship0->GetVelocity() * -1.0f);
+		Vector2 direction = m_object_ship0->GetPosition() - m_object_asteroid1->GetPosition();
+		direction.Normalize();
+		direction *= 100.0f;
+		m_object_ship0->SetVelocity(direction);
+		m_object_ship0->SetAcceleration(direction);
 	}
 	if (CheckObjectCollision(m_object_ship0, m_object_ship1))
 	{
-		m_object_ship0->SetVelocity(m_object_ship0->GetVelocity() * -1.0f);
+		Vector2 direction = m_object_ship0->GetPosition() - m_object_ship1->GetPosition();
+		direction.Normalize();
+		direction *= 100.0f;
+		m_object_ship0->SetVelocity(direction);
+		m_object_ship0->SetAcceleration(direction);
 	}
 	// . //
 }
@@ -464,7 +536,7 @@ void Application::UpdateLocalRocket(float deltaTime)
 		{
 			m_object_rocket0->SetAcceleration(Vector2(-rocketAccel, m_object_rocket0->GetAcceleration().y));
 		}
-		else if (m_object_laser0->GetPosition().x < m_object_ship1->GetPosition().x)
+		else if (m_object_rocket0->GetPosition().x < m_object_ship1->GetPosition().x)
 		{
 			m_object_rocket0->SetAcceleration(Vector2(rocketAccel, m_object_rocket0->GetAcceleration().y));
 		}
@@ -474,7 +546,7 @@ void Application::UpdateLocalRocket(float deltaTime)
 		}
 		else if (m_object_rocket0->GetPosition().y < m_object_ship1->GetPosition().y)
 		{
-			m_object_rocket0->SetAcceleration(Vector2(m_object_rocket0->GetAcceleration().y, rocketAccel));
+			m_object_rocket0->SetAcceleration(Vector2(m_object_rocket0->GetAcceleration().x, rocketAccel));
 		}
 
 		m_object_rocket0->SetRotation
@@ -514,6 +586,52 @@ void Application::UpdateLocalShip(float deltaTime)
 
 	m_object_ship0->Update(deltaTime);
 	m_object_ship0->SetAcceleration(Vector2(0.0f, 0.0f));
+
+	if (m_object_ship0->GetVelocity().x > 0.0f)
+	{
+		m_object_ship0->SetVelocity
+		(
+			Vector2
+			(
+				m_object_ship0->GetVelocity().x - deltaTime * 100.0f,
+				m_object_ship0->GetVelocity().y
+			)
+		);
+	}
+	else if (m_object_ship0->GetVelocity().x < 0.0f)
+	{
+		m_object_ship0->SetVelocity
+		(
+			Vector2
+			(
+				m_object_ship0->GetVelocity().x + deltaTime * 100.0f,
+				m_object_ship0->GetVelocity().y
+			)
+		);
+	}
+
+	if (m_object_ship0->GetVelocity().y > 0.0f)
+	{
+		m_object_ship0->SetVelocity
+		(
+			Vector2
+			(
+				m_object_ship0->GetVelocity().x,
+				m_object_ship0->GetVelocity().y - deltaTime * 100.0f
+			)
+		);
+	}
+	else if (m_object_ship0->GetVelocity().y < 0.0f)
+	{
+		m_object_ship0->SetVelocity
+		(
+			Vector2
+			(
+				m_object_ship0->GetVelocity().x,
+				m_object_ship0->GetVelocity().y + deltaTime * 100.0f
+			)
+		);
+	}
 
 	LimitVelAndPos(m_object_ship0, maxShipSpeed);
 
@@ -792,10 +910,12 @@ void Application::OnReceivedOpponentData(float* data)
 			if (playerNumber == 1)
 			{
 				m_object_ship0->SetPosition(Vector2(100.0f, 300.0f));
+				m_object_ship1->SetPosition(Vector2(700.0f, 300.0f));
 			}
 			else if (playerNumber == 2)
 			{
 				m_object_ship0->SetPosition(Vector2(700.0f, 300.0f));
+				m_object_ship1->SetPosition(Vector2(100.0f, 300.0f));
 			}
 
 			CheckPlayerColour();

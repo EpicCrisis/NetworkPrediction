@@ -24,8 +24,8 @@ protected:
 	std::list<GameObject*>::iterator iteGO;
 
 	Vector2 shipSize = Vector2(80.0f, 80.0f);
-	Vector2 laserSize = Vector2(20.0f, 60.0f);
-	Vector2 rocketSize = Vector2(20.0f, 80.0f);
+	Vector2 laserSize = Vector2(20.0f, 30.0f);
+	Vector2 rocketSize = Vector2(30.0f, 40.0f);
 	Vector2 asteroidSize = Vector2(100.0f, 100.0f);
 	Vector2 healthSize = Vector2(50.0f, 50.0f);
 	Vector2 winSize = Vector2(487.0f, 80.0f);
@@ -90,7 +90,7 @@ protected:
 	// Rocket fire rate.
 	float rocketfireRate = 3.0f;
 	float rocketfireRateCounter = 0.0f;
-	float rocketAccel = 100.0f;
+	float rocketAccel = 200.0f;
 	float rocketSpeed = 100.0f;
 	bool isRocketUsing = false;
 	bool isRocketLoading = false;
