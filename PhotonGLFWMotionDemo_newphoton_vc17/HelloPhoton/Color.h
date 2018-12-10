@@ -5,6 +5,7 @@
 
 struct Color
 {
+public:
 	GLubyte R, G, B, A;
 
 	Color()

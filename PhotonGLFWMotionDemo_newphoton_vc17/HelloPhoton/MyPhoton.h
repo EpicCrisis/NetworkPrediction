@@ -30,7 +30,11 @@ public:
 		Vector2 rocketPos0, Vector2 rocketVel0, Vector2 rocketAccel0,
 		float shipRot, float laserRot, float rocketRot,
 		Color sendColor, int sendHealth,
-		int sendLaser, int sendRocket, int sendBackLaser, int sendBackRocket
+		int sendLaser, int sendRocket, int sendBackLaser, int sendBackRocket,
+		Vector2 hpPickupPos, Vector2 hpPickupVel, Vector2 hpPickupAccel,
+		Vector2 spPickupPos, Vector2 spPickupVel, Vector2 spPickupAccel,
+		int sendhpPickup, int sendspPickup, int sendBackhpPickup, int sendBackspPickup,
+		int sendHithp, int returnHithp
 	);
 
 private:

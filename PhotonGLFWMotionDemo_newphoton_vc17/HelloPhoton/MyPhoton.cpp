@@ -33,10 +33,14 @@ void MyPhoton::sendMyData
 	Vector2 rocketPos0, Vector2 rocketVel0, Vector2 rocketAccel0,
 	float shipRot, float laserRot, float rocketRot,
 	Color sendColor, int sendHealth,
-	int sendLaser, int sendRocket, int sendBackLaser, int sendBackRocket
+	int sendLaser, int sendRocket, int sendBackLaser, int sendBackRocket,
+	Vector2 hpPickupPos, Vector2 hpPickupVel, Vector2 hpPickupAccel,
+	Vector2 spPickupPos, Vector2 spPickupVel, Vector2 spPickupAccel,
+	int sendhpPickup, int sendspPickup, int sendBackhpPickup, int sendBackspPickup,
+	int sendHithp, int returnHithp
 )
 {
-	float data[30];
+	float data[48];
 
 	data[ 0] = shipPos.x;
 	data[ 1] = shipPos.y;
@@ -72,11 +76,32 @@ void MyPhoton::sendMyData
 
 	data[26] = sendLaser;
 	data[27] = sendRocket;
-
 	data[28] = sendBackLaser;
 	data[29] = sendBackRocket;
 
-	mLoadBalancingClient.opRaiseEvent(true, data, 30, 1);
+	data[30] = hpPickupPos.x;
+	data[31] = hpPickupPos.y;
+	data[32] = hpPickupVel.x;
+	data[33] = hpPickupVel.y;
+	data[34] = hpPickupAccel.x;
+	data[35] = hpPickupAccel.y;
+
+	data[36] = spPickupPos.x;
+	data[37] = spPickupPos.y;
+	data[38] = spPickupVel.x;
+	data[39] = spPickupVel.y;
+	data[40] = spPickupAccel.x;
+	data[41] = spPickupAccel.y;
+
+	data[42] = sendhpPickup;
+	data[43] = sendspPickup;
+	data[44] = sendBackhpPickup;
+	data[45] = sendBackspPickup;
+
+	data[46] = sendHithp;
+	data[47] = returnHithp;
+
+	mLoadBalancingClient.opRaiseEvent(true, data, 48, 1);
 }
 
 void MyPhoton::run(void)

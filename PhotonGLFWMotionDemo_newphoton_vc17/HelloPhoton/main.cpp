@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #include "Application.h"
 #include <set>
+#include <time.h>
 
 using namespace std;
 
@@ -78,6 +79,8 @@ static void cursor_position_callback(GLFWwindow* window, double xPos, double yPo
 int main(void)
 {
 	GLFWwindow* window;
+
+	srand(time(NULL));
 
 	/* Initialize the library */
 	if (!glfwInit())

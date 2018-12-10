@@ -30,6 +30,8 @@ protected:
 	Vector2 healthSize = Vector2(50.0f, 50.0f);
 	Vector2 winSize = Vector2(487.0f, 80.0f);
 	Vector2 loseSize = Vector2(512.0f, 80.0f);
+	Vector2 waitSize = Vector2(756.0f, 80.0f);
+	Vector2 pickupSize = Vector2(40.0f, 40.0f);
 
 	Vector2 shipHalfSize = shipSize * 0.5f;
 	Vector2 laserHalfSize = laserSize * 0.5f;
@@ -38,8 +40,10 @@ protected:
 	Vector2 healthHalfSize = healthSize * 0.5f;
 	Vector2 winHalfSize = winSize * 0.5f;
 	Vector2 loseHalfSize = loseSize * 0.5f;
+	Vector2 waitHalfSize = waitSize * 0.5f;
+	Vector2 pickupHalfSize = pickupSize * 0.5f;
 
-	Color hurtColor = Color(150.0f, 150.0f, 150.0f, 255.0f);
+	Color hurtColor = Color(100.0f, 100.0f, 100.0f, 255.0f);
 	Color normalColor = Color(255.0f, 255.0f, 255.0f, 255.0f);
 	Color returnColor;
 
@@ -54,6 +58,9 @@ protected:
 	Sprite m_sprite_asteroid;
 	Sprite m_sprite_win;
 	Sprite m_sprite_lose;
+	Sprite m_sprite_wait;
+	Sprite m_sprite_pickup_health;
+	Sprite m_sprite_pickup_speed;
 
 	GameObject* m_object_ship0;
 	GameObject* m_object_ship1;
@@ -65,7 +72,9 @@ protected:
 	GameObject* m_object_rocket1;
 	GameObject* m_object_health0[3];
 	GameObject* m_object_health1[3];
-	GameObject* m_object_winLose;
+	GameObject* m_object_gameState;
+	GameObject* m_object_pickup_health;
+	GameObject* m_object_pickup_speed;
 
 	GameState m_gameState;
 
@@ -105,6 +114,35 @@ protected:
 	int sendRocket = 0;
 	int returnLaser = 0;
 	int returnRocket = 0;
+	int sendHealthPickup = 0;
+	int sendSpeedPickup = 0;
+	int returnHealthPickup = 0;
+	int returnSpeedPickup = 0;
+
+	// Health pickup stats.
+	float healthPickupSpeed = 100.0f;
+	float healthPickupShowTime = 10.0f;
+	float healthPickupHideTime = 3.0f;
+	float healthPickupTimeCounter = 0.0f;
+	bool isHealthPickupAvailable = false;
+	bool isHealthPickupShowing = false;
+
+	int hitHealthPickup = 0;
+	int returnHitHealthPickup = 0;
+
+	// Speed pickup stats.
+	float speedPickupSpeed = 100.0f;
+	float speedPickupShowTime = 10.0f;
+	float speedPickupHideTime = 3.0f;
+	float speedPickupTimeCounter = 0.0f;
+	bool isSpeedPickupAvailable = false;
+	bool isSpeedPickupShowing = false;
+
+	// Ship speed boost.
+	bool isSpeedBoost = false;
+	float speedBoostTime = 5.0f;
+	float speedBoostTimeCounter = 0.0f;
+	float speedBoostBonus = 100.0f;
 
 	int playerNumber;
 	Vector2 mousePosition;
@@ -115,17 +153,25 @@ protected:
 	Vector2 m_lastReceivedPos_ship1;
 	Vector2 m_lastReceivedPos_laser1;
 	Vector2 m_lastReceivedPos_rocket1;
+	Vector2 m_lastReceivedPos_pickup_health;
+	Vector2 m_lastReceivedPos_pickup_speed;
 
 	float m_lastReceivedRot_ship1;
 	float m_lastReceivedRot_laser1;
 	float m_lastReceivedRot_rocket1;
 
-	// Use this to fix latency issues.
+	// Use this to fix latency issues, possible to get live latency?
 	float alignLaserDelay = 1.0f;
 	float alignLaserDelayCounter = 0.0f;
 
 	float alignRocketDelay = 1.0f;
 	float alignRocketDelayCounter = 0.0f;
+
+	float alignSpeedPickupDelay = 1.0f;
+	float alignSpeedPickupDelayCounter = 0.0f;
+
+	float alignHealthPickupDelay = 1.0f;
+	float alignHealthPickupDelayCounter = 0.0f;
 
 	void NetworkUpdate();
 	void LimitVelAndPos(GameObject* go, float limit);
@@ -170,6 +216,8 @@ public:
 	void UpdateLocalLaser(float deltaTime);
 	void UpdateLocalRocket(float deltaTime);
 	void UpdateLocalShipHealth(float deltaTime);
+	void UpdateLocalHealthPickup(float deltaTime);
+	void UpdateLocalSpeedPickup(float deltaTime);
 
 	void UpdateRemoteShip(float deltaTime);
 	void UpdateRemoteLaser(float deltaTime);

@@ -104,6 +104,9 @@ void Application::InitializeSprites()
 	m_sprite_health_blue.SetFilePath("../media/Health_Blue.bmp");
 	m_sprite_win.SetFilePath("../media/You_Win.bmp");
 	m_sprite_lose.SetFilePath("../media/You_Lose.bmp");
+	m_sprite_wait.SetFilePath("../media/Please_Wait.bmp");
+	m_sprite_pickup_health.SetFilePath("../media/Pickup_Health.bmp");
+	m_sprite_pickup_speed.SetFilePath("../media/Pickup_Speed.bmp");
 
 	m_sprite_ship_red.SetDimension(shipSize.x, shipSize.y);
 	m_sprite_ship_blue.SetDimension(shipSize.x, shipSize.y);
@@ -116,59 +119,67 @@ void Application::InitializeSprites()
 	m_sprite_health_red.SetDimension(healthSize.x, healthSize.y);
 	m_sprite_win.SetDimension(winSize.x, winSize.y);
 	m_sprite_lose.SetDimension(loseSize.x, loseSize.y);
+	m_sprite_wait.SetDimension(waitSize.x, waitSize.y);
+	m_sprite_pickup_health.SetDimension(pickupSize.x, pickupSize.y);
+	m_sprite_pickup_speed.SetDimension(pickupSize.x, pickupSize.y);
 }
 
 void Application::InitializeObjects()
 {
-	// Spawn and set sprite for the objects.
+	// Spawn and set sprite for the objects. Set half size to detect collision.
 	m_object_ship0 = Spawn(Vector2(100.0f, 300.0f), 0.0f, Vector2(1.0f, 1.0f));
-	m_object_ship1 = Spawn(Vector2(700.0f, 300.0f), 0.0f, Vector2(1.0f, 1.0f));
 	m_object_ship0->SetSprite(m_sprite_ship_red);
+	m_object_ship0->SetHalfSize(shipHalfSize);
+
+	m_object_ship1 = Spawn(Vector2(700.0f, 300.0f), 0.0f, Vector2(1.0f, 1.0f));
 	m_object_ship1->SetSprite(m_sprite_ship_blue);
+	m_object_ship1->SetHalfSize(shipHalfSize);
 
 	m_object_laser0 = Spawn(Vector2(-200.0f, -200.0f), 0.0f, Vector2(1.0f, 1.0f));
-	m_object_laser1 = Spawn(Vector2(-200.0f, -200.0f), 0.0f, Vector2(1.0f, 1.0f));
 	m_object_laser0->SetSprite(m_sprite_laser_red);
+	m_object_laser0->SetHalfSize(laserHalfSize);
+
+	m_object_laser1 = Spawn(Vector2(-200.0f, -200.0f), 0.0f, Vector2(1.0f, 1.0f));
 	m_object_laser1->SetSprite(m_sprite_laser_blue);
+	m_object_laser1->SetHalfSize(laserHalfSize);
 
 	m_object_rocket0 = Spawn(Vector2(-200.0f, -200.0f), 0.0f, Vector2(1.0f, 1.0f));
-	m_object_rocket1 = Spawn(Vector2(-200.0f, -200.0f), 0.0f, Vector2(1.0f, 1.0f));
 	m_object_rocket0->SetSprite(m_sprite_rocket_red);
+	m_object_rocket0->SetHalfSize(rocketHalfSize);
+
+	m_object_rocket1 = Spawn(Vector2(-200.0f, -200.0f), 0.0f, Vector2(1.0f, 1.0f));
 	m_object_rocket1->SetSprite(m_sprite_rocket_blue);
+	m_object_rocket1->SetHalfSize(rocketHalfSize);
 
 	m_object_asteroid0 = Spawn(Vector2(200.0f, 400.0f), 0.0f, Vector2(1.0f, 1.0f));
-	m_object_asteroid1 = Spawn(Vector2(600.0f, 200.0f), 0.0f, Vector2(1.0f, 1.0f));
 	m_object_asteroid0->SetSprite(m_sprite_asteroid);
-	m_object_asteroid1->SetSprite(m_sprite_asteroid);
+	m_object_asteroid0->SetHalfSize(asteroidHalfSize);
 
-	m_object_winLose = Spawn(Vector2(-200.0f, -200.0f), 0.0f, Vector2(1.0f, 1.0f));
-	m_object_winLose->SetSprite(m_sprite_win);
+	m_object_asteroid1 = Spawn(Vector2(600.0f, 200.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_asteroid1->SetSprite(m_sprite_asteroid);
+	m_object_asteroid1->SetHalfSize(asteroidHalfSize);
+
+	m_object_gameState = Spawn(Vector2(400.0f, 300.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_gameState->SetSprite(m_sprite_wait);
+
+	m_object_pickup_health = Spawn(Vector2(-200.0f, -200.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_pickup_health->SetSprite(m_sprite_pickup_health);
+	m_object_pickup_health->SetHalfSize(pickupHalfSize);
+
+	m_object_pickup_speed = Spawn(Vector2(-200.0f, -200.0f), 0.0f, Vector2(1.0f, 1.0f));
+	m_object_pickup_speed->SetSprite(m_sprite_pickup_speed);
+	m_object_pickup_speed->SetHalfSize(pickupHalfSize);
 
 	for (int i = 0; i < healthShip0; ++i)
 	{
 		m_object_health0[i] = Spawn(Vector2(60.0f + (i * 60.0f), 540.0f), 0.0f, Vector2(1.0f, 1.0f));
 		m_object_health0[i]->SetSprite(m_sprite_health_red);
-		m_object_health0[i]->SetHalfSize(healthHalfSize);
 	}
 	for (int i = 0; i < healthShip1; ++i)
 	{
 		m_object_health1[i] = Spawn(Vector2(740.0f + (i * -60.0f), 540.0f), 0.0f, Vector2(1.0f, 1.0f));
 		m_object_health1[i]->SetSprite(m_sprite_health_blue);
-		m_object_health1[i]->SetHalfSize(healthHalfSize);
 	}
-
-	// Set the size for the objects.
-	m_object_ship0->SetHalfSize(shipHalfSize);
-	m_object_ship1->SetHalfSize(shipHalfSize);
-
-	m_object_laser0->SetHalfSize(laserHalfSize);
-	m_object_laser1->SetHalfSize(laserHalfSize);
-
-	m_object_rocket0->SetHalfSize(rocketHalfSize);
-	m_object_rocket1->SetHalfSize(rocketHalfSize);
-
-	m_object_asteroid0->SetHalfSize(asteroidHalfSize);
-	m_object_asteroid1->SetHalfSize(asteroidHalfSize);
 }
 
 void Application::SetPlayerNumber(int playerN)
@@ -354,6 +365,211 @@ void Application::UpdateObjectCollision()
 	}
 	// . //
 
+	// Must local only. //
+	if (playerNumber == 1)
+	{
+		// Check collision for health pickup. //
+		if (CheckBorderCollision(m_object_pickup_health, Vector2(0.0f, 0.0f), Vector2(RESOLUTION_X, RESOLUTION_Y)))
+		{
+			if (isHealthPickupShowing)
+			{
+				if (m_object_pickup_health->GetBoundStart().x <= 0.0f)
+				{
+					Vector2 objectPos = m_object_pickup_health->GetPosition();
+					Vector2 hitPos = m_object_pickup_health->GetPosition() +
+						Vector2(m_object_pickup_health->GetPosition().x, 0.0f);
+
+					Vector2 direction = hitPos - objectPos;
+					direction.Normalize();
+					direction *= healthPickupSpeed;
+					m_object_pickup_health->SetVelocity(Vector2(direction.x, m_object_pickup_health->GetVelocity().y));
+				}
+				else if (m_object_pickup_health->GetBoundEnd().x >= RESOLUTION_X)
+				{
+					Vector2 objectPos = m_object_pickup_health->GetPosition();
+					Vector2 hitPos = m_object_pickup_health->GetPosition() -
+						Vector2(m_object_pickup_health->GetHalfSize().x, 0.0f);
+
+					Vector2 direction = hitPos - objectPos;
+					direction.Normalize();
+					direction *= healthPickupSpeed;
+					m_object_pickup_health->SetVelocity(Vector2(direction.x, m_object_pickup_health->GetVelocity().y));
+				}
+				if (m_object_pickup_health->GetBoundStart().y <= 0.0f)
+				{
+					Vector2 objectPos = m_object_pickup_health->GetPosition();
+					Vector2 hitPos = m_object_pickup_health->GetPosition() +
+						Vector2(0.0f, m_object_pickup_health->GetHalfSize().y);
+
+					Vector2 direction = hitPos - objectPos;
+					direction.Normalize();
+					direction *= healthPickupSpeed;
+					m_object_pickup_health->SetVelocity(Vector2(m_object_pickup_health->GetVelocity().x, direction.y));
+				}
+				else if (m_object_pickup_health->GetBoundEnd().y >= RESOLUTION_Y)
+				{
+					Vector2 objectPos = m_object_pickup_health->GetPosition();
+					Vector2 hitPos = m_object_pickup_health->GetPosition() -
+						Vector2(0.0f, m_object_pickup_health->GetHalfSize().y);
+
+					Vector2 direction = hitPos - objectPos;
+					direction.Normalize();
+					direction *= healthPickupSpeed;
+					m_object_pickup_health->SetVelocity(Vector2(m_object_pickup_health->GetVelocity().x, direction.y));
+				}
+			}
+		}
+		if (CheckObjectCollision(m_object_pickup_health, m_object_asteroid0))
+		{
+			Vector2 direction = m_object_pickup_health->GetPosition() - m_object_asteroid0->GetPosition();
+			direction.Normalize();
+			direction *= healthPickupSpeed;
+			m_object_pickup_health->SetVelocity(direction);
+		}
+		if (CheckObjectCollision(m_object_pickup_health, m_object_asteroid1))
+		{
+			Vector2 direction = m_object_pickup_health->GetPosition() - m_object_asteroid1->GetPosition();
+			direction.Normalize();
+			direction *= healthPickupSpeed;
+			m_object_pickup_health->SetVelocity(direction);
+		}
+
+
+		// Check collision for speed pickup. //
+		if (CheckBorderCollision(m_object_pickup_speed, Vector2(0.0f, 0.0f), Vector2(RESOLUTION_X, RESOLUTION_Y)))
+		{
+			if (isSpeedPickupShowing)
+			{
+				if (m_object_pickup_speed->GetBoundStart().x <= 0.0f)
+				{
+					Vector2 objectPos = m_object_pickup_speed->GetPosition();
+					Vector2 hitPos = m_object_pickup_speed->GetPosition() +
+						Vector2(m_object_pickup_speed->GetPosition().x, 0.0f);
+
+					Vector2 direction = hitPos - objectPos;
+					direction.Normalize();
+					direction *= speedPickupSpeed;
+					m_object_pickup_speed->SetVelocity(Vector2(direction.x, m_object_pickup_speed->GetVelocity().y));
+				}
+				else if (m_object_pickup_speed->GetBoundEnd().x >= RESOLUTION_X)
+				{
+					Vector2 objectPos = m_object_pickup_speed->GetPosition();
+					Vector2 hitPos = m_object_pickup_speed->GetPosition() -
+						Vector2(m_object_pickup_speed->GetHalfSize().x, 0.0f);
+
+					Vector2 direction = hitPos - objectPos;
+					direction.Normalize();
+					direction *= speedPickupSpeed;
+					m_object_pickup_speed->SetVelocity(Vector2(direction.x, m_object_pickup_speed->GetVelocity().y));
+				}
+				if (m_object_pickup_speed->GetBoundStart().y <= 0.0f)
+				{
+					Vector2 objectPos = m_object_pickup_speed->GetPosition();
+					Vector2 hitPos = m_object_pickup_speed->GetPosition() +
+						Vector2(0.0f, m_object_pickup_speed->GetHalfSize().y);
+
+					Vector2 direction = hitPos - objectPos;
+					direction.Normalize();
+					direction *= speedPickupSpeed;
+					m_object_pickup_speed->SetVelocity(Vector2(m_object_pickup_speed->GetVelocity().x, direction.y));
+				}
+				else if (m_object_pickup_speed->GetBoundEnd().y >= RESOLUTION_Y)
+				{
+					Vector2 objectPos = m_object_pickup_speed->GetPosition();
+					Vector2 hitPos = m_object_pickup_speed->GetPosition() -
+						Vector2(0.0f, m_object_pickup_speed->GetHalfSize().y);
+
+					Vector2 direction = hitPos - objectPos;
+					direction.Normalize();
+					direction *= speedPickupSpeed;
+					m_object_pickup_speed->SetVelocity(Vector2(m_object_pickup_speed->GetVelocity().x, direction.y));
+				}
+			}
+		}
+		if (CheckObjectCollision(m_object_pickup_speed, m_object_asteroid0))
+		{
+			Vector2 direction = m_object_pickup_speed->GetPosition() - m_object_asteroid0->GetPosition();
+			direction.Normalize();
+			direction *= healthPickupSpeed;
+			m_object_pickup_speed->SetVelocity(direction);
+		}
+		if (CheckObjectCollision(m_object_pickup_speed, m_object_asteroid1))
+		{
+			Vector2 direction = m_object_pickup_speed->GetPosition() - m_object_asteroid1->GetPosition();
+			direction.Normalize();
+			direction *= healthPickupSpeed;
+			m_object_pickup_speed->SetVelocity(direction);
+		}
+	}
+
+	// Update local position and condition, no health.
+	if (CheckObjectCollision(m_object_pickup_health, m_object_ship0))
+	{
+		if (playerNumber == 1 && returnHitHealthPickup == 1)
+		{
+			m_object_pickup_health->SetPosition(Vector2(-200.0f, -200.0f));
+			m_object_pickup_health->SetVelocity(Vector2(0.0f, 0.0f));
+			m_object_pickup_health->SetAcceleration(Vector2(0.0f, 0.0f));
+	
+			isHealthPickupShowing = false;
+			healthPickupTimeCounter = 0.0f;
+	
+			sendHealthPickup = 1;
+
+			hitHealthPickup = 0;
+			returnHitHealthPickup = 0;
+		}
+	}
+
+	// Checks collision of local pickup, but sends remote ship data. Might balance out host advantage? //
+	// Can only send one way for health, since it constantly updates. //
+	else if (CheckObjectCollision(m_object_pickup_health, m_object_ship1))
+	{
+		if (playerNumber == 2)
+		{
+			if (healthShip1 < maxHealthShip1)
+			{
+				healthShip1 += 1;
+			}
+		}
+		else
+		{
+			if (healthShip1 < maxHealthShip1 && hitHealthPickup == 0)
+			{
+				m_object_pickup_health->SetPosition(Vector2(-200.0f, -200.0f));
+				m_object_pickup_health->SetVelocity(Vector2(0.0f, 0.0f));
+				m_object_pickup_health->SetAcceleration(Vector2(0.0f, 0.0f));
+
+				isHealthPickupShowing = false;
+				healthPickupTimeCounter = 0.0f;
+
+				sendHealthPickup = 1;
+
+				hitHealthPickup = 1;
+			}
+		}
+	}
+
+	// Local speed boost.
+	if (CheckObjectCollision(m_object_ship0, m_object_pickup_speed))
+	{
+		if (!isSpeedBoost)
+		{
+			maxShipSpeed += speedBoostBonus;
+			m_object_ship0->SetAcceleration(m_object_ship0->GetAcceleration() + speedBoostBonus);
+
+			isSpeedBoost = true;
+			isSpeedPickupShowing = false;
+			speedPickupTimeCounter = 0.0f;
+
+			m_object_pickup_speed->SetPosition(Vector2(-200.0f, -200.0f));
+			m_object_pickup_speed->SetVelocity(Vector2(0.0f, 0.0f));
+			m_object_pickup_speed->SetAcceleration(Vector2(0.0f, 0.0f));
+
+			sendSpeedPickup = 1;
+		}
+	}
+
 	// Local ship collision here. //
 	if (CheckBorderCollision(m_object_ship0, Vector2(0.0f, 0.0f), Vector2(RESOLUTION_X, RESOLUTION_Y)))
 	{
@@ -443,7 +659,6 @@ void Application::UpdateObjectCollision()
 		m_object_ship0->SetVelocity(direction);
 		m_object_ship0->SetAcceleration(direction);
 	}
-	// . //
 }
 
 float Application::CalculatePointRotation(Vector2 object, Vector2 mousePos)
@@ -576,6 +791,22 @@ void Application::UpdateLocalRocket(float deltaTime)
 
 void Application::UpdateLocalShip(float deltaTime)
 {
+	if (isSpeedBoost)
+	{
+		if (speedBoostTimeCounter < speedBoostTime)
+		{
+			speedBoostTimeCounter += deltaTime;
+		}
+		else
+		{
+			speedBoostTimeCounter = 0.0f;
+			isSpeedBoost = false;
+
+			maxShipSpeed -= speedBoostBonus;
+			m_object_ship0->SetAcceleration(m_object_ship0->GetAcceleration() - speedBoostBonus);
+		}
+	}
+
 	m_object_ship0->SetRotation
 	(
 		CalculatePointRotation
@@ -666,6 +897,216 @@ void Application::UpdateLocalShipHealth(float deltaTime)
 			m_object_health0[i]->SetPosition(Vector2(740.0f + (i * -60.0f), 540.0f));
 		}
 	}
+}
+
+void Application::UpdateLocalHealthPickup(float deltaTime)
+{
+	// Host advantage, update locally and send.
+	if (playerNumber == 1)
+	{
+		if (isHealthPickupAvailable && !isHealthPickupShowing)
+		{
+			m_object_pickup_health->SetPosition
+			(
+				Vector2
+				(
+					rand() % (int)(RESOLUTION_X - m_object_pickup_health->GetHalfSize().x) +
+					(0.0f + m_object_pickup_health->GetHalfSize().x),
+					rand() % (int)(RESOLUTION_Y - m_object_pickup_health->GetHalfSize().y) +
+					(0.0f + m_object_pickup_health->GetHalfSize().y)
+				)
+			);
+
+			int random = rand() % 4;
+
+			if (random == 0)
+			{
+				m_object_pickup_health->SetVelocity(Vector2(-healthPickupSpeed, -healthPickupSpeed));
+			}
+			else if (random == 1)
+			{
+				m_object_pickup_health->SetVelocity(Vector2(-healthPickupSpeed, healthPickupSpeed));
+			}
+			else if (random == 2)
+			{
+				m_object_pickup_health->SetVelocity(Vector2(healthPickupSpeed, -healthPickupSpeed));
+			}
+			else if (random == 3)
+			{
+				m_object_pickup_health->SetVelocity(Vector2(healthPickupSpeed, healthPickupSpeed));
+			}
+
+			isHealthPickupAvailable = false;
+			isHealthPickupShowing = true;
+			sendHealthPickup = 1;
+		}
+		else
+		{
+			if (!isHealthPickupAvailable && !isHealthPickupShowing)
+			{
+				if (healthPickupTimeCounter < healthPickupHideTime)
+				{
+					healthPickupTimeCounter += deltaTime;
+				}
+				else
+				{
+					healthPickupTimeCounter = 0.0f;
+
+					isHealthPickupAvailable = true;
+				}
+			}
+			else if (!isHealthPickupAvailable && isHealthPickupShowing)
+			{
+				if (healthPickupTimeCounter < healthPickupShowTime)
+				{
+					healthPickupTimeCounter += deltaTime;
+				}
+				else
+				{
+					healthPickupTimeCounter = 0.0f;
+					m_object_pickup_health->SetPosition(Vector2(-200.0f, -200.0f));
+					m_object_pickup_health->SetVelocity(Vector2(0.0f, 0.0f));
+					m_object_pickup_health->SetAcceleration(Vector2(0.0f, 0.0f));
+
+					isHealthPickupShowing = false;
+					sendHealthPickup = 1;
+				}
+			}
+		}
+	}
+	else if (playerNumber == 2)
+	{
+		if (returnHealthPickup == 1)
+		{
+			if (alignHealthPickupDelayCounter < alignHealthPickupDelay)
+			{
+				alignHealthPickupDelayCounter += deltaTime;
+
+				m_object_pickup_health->SetPosition
+				(
+					m_lastReceivedPos_pickup_health
+				);
+			}
+			else
+			{
+				alignHealthPickupDelayCounter = 0.0f;
+				returnHealthPickup = 0;
+			}
+		}
+		else
+		{
+			m_object_pickup_health->SetPosition
+			(
+				m_object_pickup_health->GetPosition() * 0.995f + m_lastReceivedPos_pickup_health * 0.005f
+			);
+		}
+	}
+
+	m_object_pickup_health->Update(deltaTime);
+}
+
+void Application::UpdateLocalSpeedPickup(float deltaTime)
+{
+	// Host advantage, update locally and send.
+	if (playerNumber == 1)
+	{
+		if (isSpeedPickupAvailable && !isSpeedPickupShowing)
+		{
+			m_object_pickup_speed->SetPosition
+			(
+				Vector2
+				(
+					rand() % (int)(RESOLUTION_X - m_object_pickup_speed->GetHalfSize().x) +
+					(0.0f + m_object_pickup_speed->GetHalfSize().x),
+					rand() % (int)(RESOLUTION_Y - m_object_pickup_speed->GetHalfSize().y) +
+					(0.0f + m_object_pickup_speed->GetHalfSize().y)
+				)
+			);
+
+			int random = rand() % 4;
+
+			if (random == 0)
+			{
+				m_object_pickup_speed->SetVelocity(Vector2(-speedPickupSpeed, -speedPickupSpeed));
+			}
+			else if (random == 1)
+			{
+				m_object_pickup_speed->SetVelocity(Vector2(-speedPickupSpeed, speedPickupSpeed));
+			}
+			else if (random == 2)
+			{
+				m_object_pickup_speed->SetVelocity(Vector2(speedPickupSpeed, -speedPickupSpeed));
+			}
+			else if (random == 3)
+			{
+				m_object_pickup_speed->SetVelocity(Vector2(speedPickupSpeed, speedPickupSpeed));
+			}
+
+			isSpeedPickupAvailable = false;
+			isSpeedPickupShowing = true;
+			sendSpeedPickup = 1;
+		}
+		else
+		{
+			if (!isSpeedPickupAvailable && !isSpeedPickupShowing)
+			{
+				if (speedPickupTimeCounter < speedPickupHideTime)
+				{
+					speedPickupTimeCounter += deltaTime;
+				}
+				else
+				{
+					speedPickupTimeCounter = 0.0f;
+
+					isSpeedPickupAvailable = true;
+				}
+			}
+			else if (!isSpeedPickupAvailable && isSpeedPickupShowing)
+			{
+				if (speedPickupTimeCounter < speedPickupShowTime)
+				{
+					speedPickupTimeCounter += deltaTime;
+				}
+				else
+				{
+					speedPickupTimeCounter = 0.0f;
+					m_object_pickup_speed->SetPosition(Vector2(-200.0f, -200.0f));
+
+					isSpeedPickupShowing = false;
+					sendSpeedPickup = 1;
+				}
+			}
+		}
+	}
+	else if (playerNumber == 2)
+	{
+		if (returnSpeedPickup == 1)
+		{
+			if (alignSpeedPickupDelayCounter < alignSpeedPickupDelay)
+			{
+				alignSpeedPickupDelayCounter += deltaTime;
+
+				m_object_pickup_speed->SetPosition
+				(
+					m_lastReceivedPos_pickup_speed
+				);
+			}
+			else
+			{
+				alignSpeedPickupDelayCounter = 0.0f;
+				returnSpeedPickup = 0;
+			}
+		}
+		else
+		{
+			m_object_pickup_speed->SetPosition
+			(
+				m_object_pickup_speed->GetPosition() * 0.995f + m_lastReceivedPos_pickup_speed * 0.005f
+			);
+		}
+	}
+
+	m_object_pickup_speed->Update(deltaTime);
 }
 
 void Application::UpdateRemoteLaser(float deltaTime)
@@ -800,14 +1241,14 @@ void Application::CheckWinLose()
 	{
 		if (healthShip0 <= 0)
 		{
-			m_object_winLose->SetSprite(m_sprite_lose);
-			m_object_winLose->SetPosition(Vector2(400.0f, 300.0f));
+			m_object_gameState->SetSprite(m_sprite_lose);
+			m_object_gameState->SetPosition(Vector2(400.0f, 300.0f));
 			m_gameState = GameState::STATE_GAMEOVER;
 		}
 		else if (healthShip1 <= 0)
 		{
-			m_object_winLose->SetSprite(m_sprite_win);
-			m_object_winLose->SetPosition(Vector2(400.0f, 300.0f));
+			m_object_gameState->SetSprite(m_sprite_win);
+			m_object_gameState->SetPosition(Vector2(400.0f, 300.0f));
 			m_gameState = GameState::STATE_GAMEOVER;
 		}
 	}
@@ -886,6 +1327,22 @@ void Application::SendMyData(void)
 	int send_back_laser = returnLaser;
 	int send_back_rocket = returnRocket;
 
+	Vector2 pos_hp_pickup = m_object_pickup_health->GetPosition();
+	Vector2 vel_hp_pickup = m_object_pickup_health->GetVelocity();
+	Vector2 acc_hp_pickup = m_object_pickup_health->GetAcceleration();
+
+	Vector2 pos_sp_pickup = m_object_pickup_speed->GetPosition();
+	Vector2 vel_sp_pickup = m_object_pickup_speed->GetVelocity();
+	Vector2 acc_sp_pickup = m_object_pickup_speed->GetAcceleration();
+
+	int send_hp_pickup = sendHealthPickup;
+	int send_sp_pickup = sendSpeedPickup;
+	int send_back_hp_pickup = returnHealthPickup;
+	int send_back_sp_pickup = returnSpeedPickup;
+
+	int hit_hp_pickup = hitHealthPickup;
+	int return_hit_hp_pickup = returnHitHealthPickup;
+
 	MyPhoton::getInstance().sendMyData
 	(
 		pos_ship0, vel_ship0, acc_ship0,
@@ -893,7 +1350,11 @@ void Application::SendMyData(void)
 		pos_rocket0, vel_rocket0, acc_rocket0,
 		rot_ship0, rot_laser0, rot_rocket0,
 		hurt_color1, hp_ship1,
-		send_laser, send_rocket, send_back_laser, send_back_rocket
+		send_laser, send_rocket, send_back_laser, send_back_rocket,
+		pos_hp_pickup, vel_hp_pickup, acc_hp_pickup,
+		pos_sp_pickup, vel_sp_pickup, acc_sp_pickup,
+		send_hp_pickup, send_sp_pickup, send_back_hp_pickup, send_back_sp_pickup,
+		hit_hp_pickup, return_hit_hp_pickup
 	);
 }
 
@@ -918,6 +1379,8 @@ void Application::OnReceivedOpponentData(float* data)
 				m_object_ship1->SetPosition(Vector2(100.0f, 300.0f));
 			}
 
+			m_object_gameState->SetPosition(Vector2(-200.0f, -200.0f));
+
 			CheckPlayerColour();
 		}
 
@@ -928,8 +1391,11 @@ void Application::OnReceivedOpponentData(float* data)
 
 	// ship : 0 ~ 5, laser0 : 6 ~ 11, rocket0 : 12 ~ 17,
 	// shipRot : 18, laserRot : 19, rocketRot : 20,
-	// returnColor.R : 21, G : 22, B : 23, A : 24, shipHealth : 25,
-	// sendLaser : 26, sendRocket : 27, sendBackLaser : 28, sendBackRocket : 29
+	// returnColor.R : 21, G : 22, B : 23, A : 24, shipHealth1 : 25,
+	// sendLaser : 26, sendRocket : 27, sendBackLaser : 28, sendBackRocket : 29,
+	// hpPickup : 30 ~ 35, spPickup : 36 ~ 41, 
+	// returnhpPickup : 42, returnspPickup : 43, sendhpPickup : 44, sendspPickup : 45,
+	// sendhithpData : 46, returnhithpData : 47
 
 	// remote ship data.
 	m_lastReceivedPos_ship1 = Vector2(data[0], data[1]);
@@ -961,6 +1427,26 @@ void Application::OnReceivedOpponentData(float* data)
 
 	sendLaser = data[28];
 	sendRocket = data[29];
+
+	if (playerNumber == 2)
+	{
+		m_lastReceivedPos_pickup_health = Vector2(data[30], data[31]);
+		m_object_pickup_health->SetVelocity(Vector2(data[32], data[33]));
+		m_object_pickup_health->SetAcceleration(Vector2(data[34], data[35]));
+
+		m_lastReceivedPos_pickup_speed = Vector2(data[36], data[37]);
+		m_object_pickup_speed->SetVelocity(Vector2(data[38], data[39]));
+		m_object_pickup_speed->SetAcceleration(Vector2(data[40], data[41]));
+	}
+
+	returnHealthPickup = data[42];
+	returnSpeedPickup = data[43];
+
+	sendHealthPickup = data[44];
+	sendSpeedPickup = data[45];
+
+	returnHealthPickup = data[46];
+	hitHealthPickup = data[47];
 }
 
 void Application::OnKeyPressed(int key)
@@ -1101,6 +1587,8 @@ void Application::Update(double elapsedTime)
 	UpdateLocalLaser(elapsedTime);
 	UpdateLocalRocket(elapsedTime);
 	UpdateLocalShipHealth(elapsedTime);
+	//UpdateLocalHealthPickup(elapsedTime);
+	UpdateLocalSpeedPickup(elapsedTime);
 	UpdateRemoteShip(elapsedTime);
 	UpdateRemoteLaser(elapsedTime);
 	UpdateRemoteRocket(elapsedTime);
@@ -1115,6 +1603,8 @@ void Application::Draw()
 
 	if (m_gameState == GameState::STATE_WAITGAME)
 	{
+		m_object_gameState->Draw();
+
 		return;
 	}
 
